@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Health Intelligence Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, rgba(15,20,40,0.85), rgba(20,30,60,0.85)),
+                  url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80");
+      background-size: cover;
+      background-attachment: fixed;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      animation: fadeIn 1s ease-in-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ☁️ Moving Clouds on Right */
+    .cloud {
+      position: absolute;
+      right: -400px;
+      background: url('https://cdn-icons-png.flaticon.com/512/414/414927.png') no-repeat center/contain;
+      opacity: 0.1;
+      pointer-events: none;
+      animation: moveCloud 80s linear infinite;
+      z-index: 1;
+    }
+    .cloud.c1 { top: 15%; width: 320px; height: 160px; animation-delay: 0s; }
+    .cloud.c2 { top: 50%; width: 420px; height: 200px; opacity: 0.08; animation-delay: 15s; }
+    .cloud.c3 { top: 75%; width: 280px; height: 140px; opacity: 0.06; animation-delay: 30s; }
+
+    @keyframes moveCloud {
+      from { transform: translateX(0); }
+      to { transform: translateX(-120vw); }
+    }
+
+    h1 {
+      font-weight: 700;
+      margin-bottom: 50px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      font-size: 2.2rem;
+      z-index: 2;
+      position: relative;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 35px;
+      width: 90%;
+      max-width: 1100px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .glass-card {
+      padding: 40px 30px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      text-decoration: none;
+      color: #fff;
+      transition: 0.3s;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 230px;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      background: rgba(255,255,255,0.18);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45), 0 0 18px rgba(13, 202, 240, 0.4);
+    }
+
+    .glass-card i {
+      font-size: 2.8rem;
+      color: #0dcaf0;
+      margin-bottom: 15px;
+    }
+
+    .glass-card h5 {
+      margin-bottom: 10px;
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+
+    .glass-card p {
+      font-size: 1rem;
+      color: #d0d0d0;
+      line-height: 1.4;
+    }
+/* ---- Static Clouds ---- */
+.cloud-layer{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;           /* don’t block clicks */
+  z-index: 1;                     /* above background, below UI */
+}
+
+.cloud{
+  position: absolute;
+  width: 420px;                   /* base size; others scale below */
+  height: auto;
+  opacity: 0.10;                  /* softness */
+  filter: blur(0.6px);            /* gentle feathering */
+  mix-blend-mode: screen;         /* lightens over dark bg */
+}
+
+/* Place a few clouds around the canvas */
+.cloud.c1{ top: 6vh;  left: 6vw;  transform: scale(1.1); }
+.cloud.c2{ top: 14vh; right: 8vw; transform: scale(1.3); opacity:0.12; }
+.cloud.c3{ top: 32vh; left: 18vw; transform: scale(1.6); opacity:0.09; }
+.cloud.c4{ top: 54vh; right: 16vw; transform: scale(1.4); opacity:0.11; }
+.cloud.c5{ bottom: 6vh; left: 8vw; transform: scale(1.2); opacity:0.08; }
+
+/* Optional: adjust on small screens so they don’t overwhelm */
+@media (max-width: 768px){
+  .cloud{ width: 300px; opacity: 0.10; }
+  .cloud.c2{ display:none; }      /* hide one for simplicity */
+}
+
+    footer {
+      margin-top: 50px;
+      font-size: 0.9rem;
+      color: #aaa;
+      z-index: 2;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ☁️ Floating Clouds -->
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+
+  <h1><i class="fas fa-heartbeat text-danger"></i> Health Intelligence Hub</h1>
+
+  <div class="card-grid">
+    <a href="/clean Routing" class="glass-card">
+      <i class="fas fa-stethoscope"></i>
+      <h5>Clean Route</h5>
+      <p>Form-based health analysis with personalized AI guidance</p>
+    </a>
+
+    <a href="/Traffic Control" class="glass-card">
+      <i class="fas fa-brain"></i>
+      <h5>Traffic Control</h5>
+      <p>Real-time AQI dashboard, safety score & symptom predictor</p>
+    </a>
+
+    <a href="/Monument Preservance" class="glass-card">
+      <i class="fas fa-tree"></i>
+      <h5>Preserve Monnument</h5>
+      <p>Find clean-air parks and safe zones near your area</p>
+    </a>
+
+
+  <footer>© 2025 Smart Health Hub – Stay Aware, Stay Fit</footer>
+  <!-- Static Cloud Layer (no interaction) -->
+<svg width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;">
+  <defs>
+    <!-- Simple cloud symbol -->
+    <symbol id="ui-cloud" viewBox="0 0 128 64">
+      <path d="M26 44c-11 0-20-7-20-16s9-16 20-16c4 0 7 1 10 3C39 7 47 2 56 2c12 0 22 8 24 19
+               2-1 5-2 8-2 12 0 22 8 22 18s-10 18-22 18H26z" fill="white"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="cloud-layer" aria-hidden="true">
+  <svg class="cloud c1"><use href="#ui-cloud"/></svg>
+  <svg class="cloud c2"><use href="#ui-cloud"/></svg>
+  <svg class="cloud c3"><use href="#ui-cloud"/></svg>
+  <svg class="cloud c4"><use href="#ui-cloud"/></svg>
+  <svg class="cloud c5"><use href="#ui-cloud"/></svg>
+</div>
+
+</body>
+</html>

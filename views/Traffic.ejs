@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Traffic Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Dependencies -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, rgba(10, 10, 20, 0.85), rgba(40, 50, 70, 0.65)),
+                  url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80");
+                  
+      background-size: cover;
+      background-attachment: fixed;
+      color: #f1f5f9;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    label { color: #d0d7e3; font-size: 0.9rem; }
+    input.form-control {
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    #map { border-radius: 1rem; border: 1px solid rgba(255,255,255,0.15); }
+    .info-card h6 { color: #38bdf8; }
+
+    /* Info Section */
+    .info-section {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.8rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .info-section h6 {
+      color: #00ffaa;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container my-4">
+  <div class="row g-4">
+    <!-- Left Form -->
+    <div class="col-12 col-lg-4">
+      <div class="glass-panel p-4">
+        <h5 class="mb-3"><i class="fa-solid fa-traffic-light"></i> Smart Traffic Manager</h5>
+        <form id="routeForm">
+          <div class="mb-3">
+            <label class="form-label">Source</label>
+            <input id="source" class="form-control" type="text" placeholder="e.g., India Gate" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Destination</label>
+            <input id="destination" class="form-control" type="text" placeholder="e.g., Red Fort" required />
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <button type="submit" class="w-100 btn btn-success">
+                <i class="fa-solid fa-route"></i> Analyze
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" id="useExample" class="w-100 btn btn-primary">
+                <i class="fa-solid fa-lightbulb"></i> Example
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Informative Section -->
+        <div class="info-section mt-4">
+          <h6><i class="fa-solid fa-circle-info"></i> About This Tool</h6>
+          <p>
+            The Smart Traffic Manager helps you find the <strong>best routes</strong> by analyzing:
+          </p>
+          <ul class="mb-2">
+            <li>Shortest path based on distance</li>
+            <li>Cleanest path with lower PM10 levels</li>
+            <li>Least congested path (traffic simulation)</li>
+          </ul>
+          <p class="text-secondary">
+            Data powered by OpenStreetMap and Open-Meteo APIs.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map + Info -->
+    <div class="col-12 col-lg-8">
+      <div id="map" class="glass-panel mb-3" style="height:500px;"></div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="glass-panel p-3 text-center info-card">
+            <h6>Shortest Route</h6>
+            <p id="shortDist" class="fs-6">--</p>
+            <small id="shortPm10" class="d-block text-muted">PM10: --</small>
+            <small id="shortTraffic" class="text-warning">Traffic: --</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-panel p-3 text-center info-card">
+            <h6>Cleanest Route</h6>
+            <p id="cleanDist" class="fs-6">--</p>
+            <small id="cleanPm10" class="d-block text-muted">PM10: --</small>
+            <small id="cleanTraffic" class="text-warning">Traffic: --</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-panel p-3 text-center info-card">
+            <h6>Least Congested</h6>
+            <p id="freeDist" class="fs-6">--</p>
+            <small id="freePm10" class="d-block text-muted">PM10: --</small>
+            <small id="freeTraffic" class="text-warning">Traffic: --</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+<script>
+  const map = L.map('map').setView([28.6139, 77.2090], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(map);
+  const overlays = L.layerGroup().addTo(map);
+
+  const toLatLng = s => s.split(',').map(v => parseFloat(v.trim()));
+  const isLatLng = s => /-?\\d+\\.?\\d*,\\s*-?\\d+\\.?\\d*/.test(s);
+
+  async function geocode(q) {
+    if (isLatLng(q)) {
+      const [lat, lon] = toLatLng(q);
+      return { lat, lon };
+    }
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+    const data = await res.json();
+    return data[0] ? { lat: +data[0].lat, lon: +data[0].lon } : null;
+  }
+
+  const pm10Cache = new Map();
+  async function fetchPM10(lat, lon) {
+    const key = `${lat.toFixed(2)}|${lon.toFixed(2)}`;
+    if (pm10Cache.has(key)) return pm10Cache.get(key);
+    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm10&timezone=auto`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const val = data.hourly?.pm10?.[0] ?? 50;
+    pm10Cache.set(key, val);
+    return val;
+  }
+
+  function simulateTraffic() { return Math.floor(Math.random() * 100); }
+
+  async function evaluateRoute(route) {
+    const coords = route.coordinates;
+    const sampled = coords.filter((_, i) => i % 25 === 0);
+    let pmVals = [];
+    for (const p of sampled) pmVals.push(await fetchPM10(p.lat, p.lng));
+    return {
+      avgPM: pmVals.reduce((a,b)=>a+b,0)/pmVals.length,
+      traffic: simulateTraffic(),
+      dist: route.summary.totalDistance,
+      dur: route.summary.totalTime
+    };
+  }
+
+  function drawRoutes(routes, indexes) {
+    overlays.clearLayers();
+    routes.forEach((r, i) => {
+      let color = '#6b7280';
+      if (i === indexes.shortest) color = '#ef4444';
+      if (i === indexes.cleanest) color = '#16a34a';
+      if (i === indexes.freest) color = '#eab308';
+      L.polyline(r.coordinates.map(c => [c.lat, c.lng]), { color, weight: 5, opacity: 0.8 }).addTo(overlays);
+    });
+  }
+
+  const router = L.Routing.control({
+    router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+    showAlternatives: true,
+    addWaypoints: false,
+    lineOptions: { styles: [{ color: 'transparent', weight: 0 }] },
+    altLineOptions: { styles: [{ color: 'transparent', weight: 0 }] }
+  }).addTo(map);
+
+  router.on('routesfound', async (e) => {
+    const routes = e.routes;
+    const evals = [];
+    for (let i = 0; i < routes.length; i++) evals[i] = await evaluateRoute(routes[i]);
+    const shortest = evals.reduce((min,i,idx,arr)=>i.dist<arr[min].dist?idx:min,0);
+    const cleanest = evals.reduce((min,i,idx,arr)=>i.avgPM<arr[min].avgPM?idx:min,0);
+    const freest = evals.reduce((min,i,idx,arr)=>i.traffic<arr[min].traffic?idx:min,0);
+    drawRoutes(routes, { shortest, cleanest, freest });
+
+    const km = d => (d/1000).toFixed(2)+' km';
+    const fill = (prefix, idx) => {
+      document.getElementById(prefix+'Dist').innerText = km(evals[idx].dist);
+      document.getElementById(prefix+'Pm10').innerText = 'PM10: '+evals[idx].avgPM.toFixed(1);
+      document.getElementById(prefix+'Traffic').innerText = 'Traffic: '+evals[idx].traffic+'%';
+    };
+    fill('short', shortest); fill('clean', cleanest); fill('free', freest);
+  });
+
+  document.getElementById('routeForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    pm10Cache.clear();
+    const src = await geocode(document.getElementById('source').value);
+    const dst = await geocode(document.getElementById('destination').value);
+    if (!src || !dst) return alert("Invalid locations!");
+    router.setWaypoints([L.latLng(src.lat, src.lon), L.latLng(dst.lat, dst.lon)]);
+  });
+
+  document.getElementById('useExample').addEventListener('click', () => {
+    document.getElementById('source').value = 'India Gate, New Delhi';
+    document.getElementById('destination').value = 'Red Fort, New Delhi';
+  });
+</script>
+</body>
+</html>

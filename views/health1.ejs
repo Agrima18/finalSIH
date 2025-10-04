@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Health Coach | Delhi AQI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap + FontAwesome + Chart.js -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Background: dark gradient overlay + Unsplash */
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      background:
+        linear-gradient(135deg, rgba(10, 15, 35, 0.85), rgba(20, 30, 60, 0.85)),
+        url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #e9eef6;
+      min-height: 100vh;
+    }
+
+    .page-wrap {
+      padding: 32px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .title-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .title-bar h1 {
+      font-size: 1.6rem;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: .2px;
+      text-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+    .title-bar .meta {
+      opacity: .85;
+      font-size: .95rem;
+    }
+
+    /* Glass card */
+    .glass {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    .glass-section {
+      padding: 18px 18px;
+    }
+    .glass h5, .glass h6 {
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      color: #fff;
+    }
+    .muted {
+      color: #bdc7d6;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 600;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    /* Grid layout */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 992px) { .dashboard { grid-template-columns: 1fr; } }
+
+    /* AQI circular gauge */
+    .gauge-wrap {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+    @media (max-width: 576px) { .gauge-wrap { grid-template-columns: 1fr; } }
+
+    .gauge {
+      width: 220px; height: 220px;
+      position: relative;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background:
+        conic-gradient(#4caf50 0deg, #cddc39 60deg, #ff9800 180deg, #f44336 260deg, #6a1b9a 330deg, #6a1b9a 360deg);
+      filter: drop-shadow(0 8px 22px rgba(0,0,0,.4));
+    }
+    .gauge .mask {
+      position: absolute;
+      width: 170px; height: 170px;
+      border-radius: 50%;
+      background: rgba(10, 14, 30, 0.9);
+      border: 1px solid rgba(255,255,255,.08);
+      display: grid; place-items: center;
+    }
+    .gauge .needle {
+      position: absolute;
+      width: 4px; height: 95px;
+      background: #fff;
+      top: 15px;
+      left: calc(50% - 2px);
+      transform-origin: bottom center;
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(255,255,255,.6);
+      transition: transform 1s ease-in-out;
+    }
+    .gauge .hub {
+      position: absolute; width: 14px; height: 14px; background: #fff; border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255,255,255,.9);
+    }
+    .gauge .label {
+      text-align: center;
+    }
+    .gauge .label .aqi-value {
+      font-size: 1.8rem; font-weight: 800; color: #fff;
+      line-height: 1.1;
+    }
+    .gauge .label .aqi-level {
+      font-size: .9rem; text-transform: uppercase; letter-spacing: .8px; color: #cfe0ff;
+    }
+
+    .legend-row {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    /* Safety score */
+    .score-wrap { margin-top: 10px; }
+    .score-bar {
+      height: 12px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .score-fill {
+      height: 100%; width: 0%; background: linear-gradient(90deg, #38ef7d, #11998e);
+      transition: width .9s ease;
+    }
+    .score-label { display: flex; justify-content: space-between; margin-top: 6px; font-size: .9rem; color: #cfe0ff; }
+
+    /* Cards list */
+    .card-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 992px) { .card-list { grid-template-columns: 1fr; } }
+    .mini-card {
+      padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,0.08);
+    }
+    .mini-card .icon {
+      width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); color: #fff; margin-bottom: 8px;
+    }
+    .tag-badge {
+      padding: 4px 8px; border-radius: 999px; font-size: .8rem; font-weight: 700; color: #0a0e1e;
+      background: #e9eef6; display: inline-block;
+    }
+/* ➕ Floating Button */
+.fab-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.6rem;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+  z-index: 1050;
+}
+.fab-btn:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Glass Style */
+.glass-modal {
+  background: rgba(20, 25, 45, 0.9);
+  border: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  border-radius: 18px;
+}
+
+/* 💬 Comments Section */
+.glass-comment {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  color: #e9eef6;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+.glass-comment:hover {
+  transform: scale(1.02);
+  background: rgba(255,255,255,0.12);
+}
+.like-btn, .dislike-btn {
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+.like-btn i { color: #38ef7d; }
+.dislike-btn i { color: #ff6b6b; }
+
+    /* Checklist */
+    .checklist li { list-style: none; display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+    .checklist .form-check-input { cursor: pointer; }
+
+    /* Alert ticker */
+    .ticker {
+      overflow: hidden; position: relative; height: 32px; border-radius: 10px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+      display: flex; align-items: center; padding: 0 12px;
+    }
+    .ticker i { margin-right: 8px; color: #ffd166; }
+    .ticker .line {
+      white-space: nowrap; animation: slide 18s linear infinite;
+    }
+    @keyframes slide {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(-100%); }
+    }
+
+    /* Chart container */
+    .chart-wrap { padding: 8px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); }
+
+    /* AI bubble */
+    .ai-bubble {
+      border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(18,24,44,.75);
+    }
+
+    .divider { height: 1px; background: rgba(255,255,255,.12); margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="title-bar">
+      <i class="fas fa-heartbeat fs-4 text-danger"></i>
+      <h1>Smart Health Coach — Delhi</h1>
+      <span class="meta ms-auto"><i class="fas fa-map-marker-alt"></i> Delhi, IN</span>
+    </div>
+
+    <!-- Alerts Ticker -->
+    <div class="ticker glass glass-section mb-3">
+      <i class="fas fa-bell"></i>
+      <div class="line" id="newsTicker">Loading air quality alerts…</div>
+    </div>
+
+    <div class="dashboard">
+      <!-- Left Column -->
+      <div class="glass glass-section">
+        <!-- AQI Gauge + Summary -->
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <div class="needle" id="needle"></div>
+            <div class="hub"></div>
+            <div class="mask">
+              <div class="label">
+                <div class="aqi-value" id="aqiValue">--</div>
+                <div class="aqi-level" id="aqiLevel">--</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5><i class="fas fa-leaf text-success"></i> Air Quality Summary</h5>
+            <div class="muted" id="aqiSummary">Fetching current AQI and weather…</div>
+
+            <div class="legend-row mt-2">
+              <span class="chip"><span class="legend-dot" style="background:#4caf50"></span> Good</span>
+              <span class="chip"><span class="legend-dot" style="background:#cddc39"></span> Moderate</span>
+              <span class="chip"><span class="legend-dot" style="background:#ff9800"></span> Unhealthy</span>
+              <span class="chip"><span class="legend-dot" style="background:#f44336"></span> Very Unhealthy</span>
+              <span class="chip"><span class="legend-dot" style="background:#6a1b9a"></span> Hazardous</span>
+            </div>
+
+            <div class="score-wrap">
+              <div class="d-flex align-items-center justify-content-between mt-3">
+                <h6 class="m-0">Safety Score</h6>
+                <span class="tag-badge" id="scoreBadge">-- / 100</span>
+              </div>
+              <div class="score-bar mt-2">
+                <div class="score-fill" id="scoreFill"></div>
+              </div>
+              <div class="score-label"><span>Lower is safer</span><span id="scoreCaption">Calculating…</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Activity Recommender -->
+        <h5><i class="fas fa-running"></i> Activity Recommender</h5>
+        <div class="card-list mt-2">
+          <div class="mini-card" id="cardJog">
+            <div class="icon"><i class="fas fa-shoe-prints"></i></div>
+            <strong>Outdoor Jogging</strong>
+            <div class="muted" id="jogText">Evaluating…</div>
+          </div>
+          <div class="mini-card" id="cardCycle">
+            <div class="icon"><i class="fas fa-bicycle"></i></div>
+            <strong>Cycling</strong>
+            <div class="muted" id="cycleText">Evaluating…</div>
+          </div>
+          <div class="mini-card" id="cardIndoor">
+            <div class="icon"><i class="fas fa-home"></i></div>
+            <strong>Indoor Workout</strong>
+            <div class="muted" id="indoorText">Evaluating…</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Symptom Prediction -->
+        <h5><i class="fas fa-notes-medical"></i> Symptom Prediction</h5>
+        <div class="row g-2 mt-1">
+          <div class="col-12 col-md-4">
+            <div class="mini-card">
+              <div class="icon"><i class="fas fa-eye"></i></div>
+              <strong>Irritation</strong>
+              <div class="muted" id="symEye">—</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="mini-card">
+              <div class="icon"><i class="fas fa-lungs"></i></div>
+              <strong>Respiratory</strong>
+              <div class="muted" id="symResp">—</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="mini-card">
+              <div class="icon"><i class="fas fa-tired"></i></div>
+              <strong>Fatigue</strong>
+              <div class="muted" id="symFatigue">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="glass glass-section">
+        <!-- Forecast Chart -->
+        <h5><i class="fas fa-chart-line"></i> 12-Hour AQI Forecast</h5>
+        <div class="chart-wrap mt-2">
+          <canvas id="aqiChart" height="130"></canvas>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Precaution Checklist -->
+        <h5><i class="fas fa-shield-alt"></i> Precaution Checklist</h5>
+        <ul class="checklist mt-2" id="checklist">
+          <li class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkMask">
+            <label class="form-check-label" for="chkMask"><i class="fas fa-head-side-mask"></i> Wear N95 mask outdoors</label>
+          </li>
+          <li class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkPurifier">
+            <label class="form-check-label" for="chkPurifier"><i class="fas fa-wind"></i> Turn on air purifier</label>
+          </li>
+          <li class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkWindows">
+            <label class="form-check-label" for="chkWindows"><i class="fas fa-window-close"></i> Keep windows closed</label>
+          </li>
+          <li class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkHydrate">
+            <label class="form-check-label" for="chkHydrate"><i class="fas fa-glass-whiskey"></i> Hydrate frequently</label>
+          </li>
+        </ul>
+        <div class="score-bar"><div class="score-fill" id="protectFill" style="background:linear-gradient(90deg,#56ccf2,#2f80ed)"></div></div>
+        <div class="score-label"><span>Protection</span><span id="protectLabel">0% complete</span></div>
+
+        <div class="divider"></div>
+
+        <!-- AI Assistant -->
+        <h5><i class="fas fa-robot"></i> Assistant</h5>
+        <div class="ai-bubble" id="aiAdvice">
+          Preparing personalized guidance…
+        </div>
+        <button class="btn btn-sm btn-outline-light mt-2" id="btnSpeak"><i class="fas fa-volume-up"></i> Speak Advice</button>
+      </div>
+    </div>
+  </div>
+<div class="divider"></div>
+
+<!-- 💬 Reviews & Comments -->
+<h5><i class="fas fa-comments"></i> Reviews & Comments</h5>
+
+<!-- Comment Form -->
+<form id="commentForm" class="mt-2">
+  <div class="mb-2">
+    <input type="text" id="userName" class="form-control form-control-sm bg-transparent text-light" placeholder="Your name">
+  </div>
+  <div class="mb-2">
+    <textarea id="userComment" class="form-control form-control-sm bg-transparent text-light" rows="2" placeholder="Write your review..."></textarea>
+  </div>
+  <button type="submit" class="btn btn-sm btn-light">
+    <i class="fas fa-paper-plane"></i> Post
+  </button>
+</form>
+
+<!-- Stacked Comments -->
+<div id="commentList" class="mt-3">
+  <div class="comment glass-comment p-2 d-flex align-items-center justify-content-between mb-2">
+    <div><strong>Admin</strong>: This dashboard is awesome!</div>
+    <div class="actions d-flex gap-2 align-items-center">
+      <button class="btn btn-sm btn-outline-success like-btn"><i class="fas fa-thumbs-up"></i> <span class="like-count">2</span></button>
+      <button class="btn btn-sm btn-outline-danger dislike-btn"><i class="fas fa-thumbs-down"></i> <span class="dislike-count">0</span></button>
+    </div>
+  </div>
+</div>
+
+  <script>
+    
+    // -------- Config & helpers --------
+    const aqiBands = [
+      {max:50,  label:'Good',          color:'#4caf50'},
+      {max:100, label:'Moderate',      color:'#cddc39'},
+      {max:200, label:'Unhealthy',     color:'#ff9800'},
+      {max:300, label:'Very Unhealthy',color:'#f44336'},
+      {max:500, label:'Hazardous',     color:'#6a1b9a'}
+    ];
+    function bandFor(aqi){
+      return aqiBands.find(b => aqi <= b.max) || aqiBands[aqiBands.length-1];
+    }
+    function needleAngle(aqi){
+      // 0..500 maps to -120deg..+120deg (240deg sweep)
+      const clamped = Math.max(0, Math.min(500, aqi));
+      return -120 + (clamped/500)*240;
+    }
+    function safetyScore(aqi, humidity, temp){
+      // Simple demo scoring: 100 - AQI/5 - humidity/4 - tempPenalty
+      const tempPenalty = Math.max(0, Math.abs(temp-22))*0.8;
+      const raw = 100 - (aqi/5) - (humidity/4) - tempPenalty;
+      return Math.max(0, Math.min(100, Math.round(raw)));
+    }
+    function recText(aqi){
+      if(aqi<=50) return {jog:"Recommended", cycle:"Recommended", indoor:"Great choice"};
+      if(aqi<=100) return {jog:"Light only", cycle:"Light only", indoor:"Recommended"};
+      if(aqi<=200) return {jog:"Not recommended", cycle:"Limited", indoor:"Recommended"};
+      if(aqi<=300) return {jog:"Avoid", cycle:"Avoid", indoor:"Recommended"};
+      return {jog:"Avoid", cycle:"Avoid", indoor:"Recommended only"};
+    }
+    function symptomText(aqi){
+      if(aqi<=50) return {eye:"Minimal", resp:"Minimal", fatigue:"Minimal"};
+      if(aqi<=100) return {eye:"Mild", resp:"Mild", fatigue:"Mild"};
+      if(aqi<=200) return {eye:"Irritation likely", resp:"Cough possible", fatigue:"Moderate"};
+      if(aqi<=300) return {eye:"Strong irritation", resp:"Breathing issues", fatigue:"High"};
+      return {eye:"Severe", resp:"Serious risk", fatigue:"Severe"};
+    }
+
+    // -------- Demo Data (replace with real endpoints later) --------
+    let currentAQI = 185;
+    let temp = 31;          // °C
+    let humidity = 58;      // %
+    let condition = "Partly Cloudy";
+
+    // -------- UI Elements --------
+    const needleEl = document.getElementById('needle');
+    const aqiValEl = document.getElementById('aqiValue');
+    const aqiLvlEl = document.getElementById('aqiLevel');
+    const aqiSummaryEl = document.getElementById('aqiSummary');
+
+    const scoreFill = document.getElementById('scoreFill');
+    const scoreBadge = document.getElementById('scoreBadge');
+    const scoreCaption = document.getElementById('scoreCaption');
+
+    const jogText = document.getElementById('jogText');
+    const cycleText = document.getElementById('cycleText');
+    const indoorText = document.getElementById('indoorText');
+
+    const symEye = document.getElementById('symEye');
+    const symResp = document.getElementById('symResp');
+    const symFatigue = document.getElementById('symFatigue');
+
+    const protectFill = document.getElementById('protectFill');
+    const protectLabel = document.getElementById('protectLabel');
+
+    const aiAdvice = document.getElementById('aiAdvice');
+    const btnSpeak = document.getElementById('btnSpeak');
+
+    // -------- Build Chart --------
+    const ctx = document.getElementById('aqiChart').getContext('2d');
+    const hours = Array.from({length:12}, (_,i)=> {
+      const d = new Date(); d.setHours(d.getHours()+i);
+      return d.toLocaleTimeString([], {hour:'2-digit'});
+    });
+    const forecast = Array.from({length:12}, (_,i)=> Math.max(40, Math.min(420, Math.round(currentAQI + (Math.sin(i/2)*40) + (Math.random()*20-10)))));
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'AQI',
+          data: forecast,
+          borderWidth: 2,
+          pointRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `AQI: ${ctx.parsed.y}` } }
+        },
+        scales: {
+          x: { ticks: { color: '#cfe0ff' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+          y: { min: 0, max: 500, ticks: { color: '#cfe0ff' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+        },
+        elements: { line: { borderColor: '#7cb8ff' } }
+      }
+    });
+
+    // -------- News Ticker --------
+    const newsItems = [
+      "Delhi traffic peak expected this evening — localized AQI spikes likely.",
+      "Light showers forecast tomorrow; AQI may improve by late evening.",
+      "Avoid outdoor cardio when AQI > 150; consider indoor workouts.",
+      "Use high-efficiency filters (HEPA) for better indoor air quality."
+    ];
+    document.getElementById('newsTicker').textContent = "  •  " + newsItems.join("   •   ") + "   •  ";
+
+    // -------- Update UI --------
+    function updateUI(){
+      const band = bandFor(currentAQI);
+      const angle = needleAngle(currentAQI);
+
+      aqiValEl.textContent = currentAQI;
+      aqiLvlEl.textContent = band.label;
+      needleEl.style.transform = `rotate(${angle}deg)`;
+
+      aqiSummaryEl.innerHTML = `
+        <span class="chip"><i class="fas fa-thermometer-half"></i> ${temp}°C</span>
+        <span class="chip"><i class="fas fa-tint"></i> ${humidity}%</span>
+        <span class="chip"><i class="fas fa-cloud"></i> ${condition}</span>
+        <span class="chip" style="border-color:${band.color}; color:#fff"><i class="fas fa-info-circle"></i> ${band.label}</span>
+      `;
+
+      const score = safetyScore(currentAQI, humidity, temp);
+      scoreBadge.textContent = `${score} / 100`;
+      scoreFill.style.width = `${score}%`;
+      scoreCaption.textContent = score >= 70 ? "Generally safe with precautions" :
+                                  score >= 40 ? "Caution advised outdoors" :
+                                  "Limit exposure; optimize indoor air";
+
+      const rec = recText(currentAQI);
+      jogText.textContent = rec.jog;
+      cycleText.textContent = rec.cycle;
+      indoorText.textContent = rec.indoor;
+
+      const sym = symptomText(currentAQI);
+      symEye.textContent = sym.eye;
+      symResp.textContent = sym.resp;
+      symFatigue.textContent = sym.fatigue;
+
+      aiAdvice.innerHTML = `
+        <i class="fas fa-brain"></i> Based on AQI ${currentAQI}, humidity ${humidity}% and temperature ${temp}°C:
+        <br>- Reduce outdoor exposure during peak traffic hours.
+        <br>- Maintain indoor ventilation with filtration.
+        <br>- Prefer low-intensity indoor activities today.
+      `;
+    }
+
+    // -------- Checklist Progress --------
+    const checks = ['chkMask','chkPurifier','chkWindows','chkHydrate'].map(id => document.getElementById(id));
+    function updateProtection(){
+      const total = checks.length;
+      const done = checks.filter(c => c.checked).length;
+      const pct = Math.round((done/total)*100);
+      protectFill.style.width = `${pct}%`;
+      protectLabel.textContent = `${pct}% complete`;
+    }
+    checks.forEach(c => c.addEventListener('change', updateProtection));
+
+    // -------- Speech --------
+    btnSpeak.addEventListener('click', () => {
+      const text = aiAdvice.innerText.replace(/\s+/g,' ').trim();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-IN';
+      speechSynthesis.speak(utter);
+    });
+
+    // Initial render
+    updateUI();
+    updateProtection();
+
+    // OPTIONAL: hook to your APIs
+    // fetch('/api/aqi?city=Delhi').then(r=>r.json()).then(({aqi}) => { currentAQI = aqi; updateUI(); });
+    // fetch('/api/weather?city=Delhi').then(r=>r.json()).then(({temp: t, humidity: h, condition: c}) => { temp=t; humidity=h; condition=c; updateUI(); });
+  </script>
+  <!-- ➕ Floating Add Button -->
+<button id="addBtn" class="fab-btn">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- 🧊 Add Form Modal -->
+<div class="modal fade" id="addFormModal" tabindex="-1" aria-labelledby="addFormLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addFormLabel"><i class="fas fa-pen"></i> Add Health Note</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="healthForm">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control form-control-sm bg-transparent text-light" id="noteTitle" placeholder="e.g. Morning Jog Note">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Details</label>
+            <textarea class="form-control form-control-sm bg-transparent text-light" id="noteText" rows="3" placeholder="Write your observation..."></textarea>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-light btn-sm"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Floating Add Button Modal
+  const addBtn = document.getElementById("addBtn");
+  const addModal = new bootstrap.Modal(document.getElementById("addFormModal"));
+
+  addBtn.addEventListener("click", () => addModal.show());
+
+  document.getElementById("healthForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("noteTitle").value.trim();
+    const text = document.getElementById("noteText").value.trim();
+    if (!title || !text) return alert("Please fill in all fields!");
+
+    alert(`✅ Note Saved:\n${title}\n${text}`);
+    addModal.hide();
+    e.target.reset();
+  });
+
+  // Comment Section Logic
+  const commentForm = document.getElementById("commentForm");
+  const commentList = document.getElementById("commentList");
+
+  commentForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("userName").value.trim() || "Anonymous";
+    const comment = document.getElementById("userComment").value.trim();
+    if (!comment) return alert("Please write a comment!");
+
+    const newComment = document.createElement("div");
+    newComment.className = "comment glass-comment p-2 d-flex align-items-center justify-content-between mb-2";
+    newComment.innerHTML = `
+      <div><strong>${name}</strong>: ${comment}</div>
+      <div class="actions d-flex gap-2 align-items-center">
+        <button class="btn btn-sm btn-outline-success like-btn"><i class="fas fa-thumbs-up"></i> <span class="like-count">0</span></button>
+        <button class="btn btn-sm btn-outline-danger dislike-btn"><i class="fas fa-thumbs-down"></i> <span class="dislike-count">0</span></button>
+      </div>
+    `;
+    commentList.prepend(newComment);
+    document.getElementById("userComment").value = "";
+    document.getElementById("userName").value = "";
+  });
+
+  // Like/Dislike functionality
+  commentList.addEventListener("click", (e) => {
+    if (e.target.closest(".like-btn")) {
+      const btn = e.target.closest(".like-btn");
+      const countEl = btn.querySelector(".like-count");
+      countEl.textContent = parseInt(countEl.textContent) + 1;
+    }
+    if (e.target.closest(".dislike-btn")) {
+      const btn = e.target.closest(".dislike-btn");
+      const countEl = btn.querySelector(".dislike-count");
+      countEl.textContent = parseInt(countEl.textContent) + 1;
+    }
+  });
+</script>
+
+</body>
+</html>

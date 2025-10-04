@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Clean Route Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- 📦 Dependencies -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    html { font-size: 14px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', 'Inter', sans-serif;
+      background: radial-gradient(circle at top left, rgba(30,30,50,0.95), rgba(5,5,15,0.95)),
+                  url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80');
+      background-size: cover;
+      background-attachment: fixed;
+      color: #e9eef6;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 20px rgba(0, 255, 150, 0.08);
+      padding: 1.8rem;
+      width: 90%;
+      max-width: 44rem;
+      margin: 0 auto 3rem;
+      z-index: 2;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #00ffaa;
+    }
+
+    label {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #cdd6f4;
+    }
+
+    input.form-control {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.8rem;
+      height: 2.2rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn {
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(90deg, #00ffaa, #00ccff);
+      color: #0a0a0a;
+      border: none;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+
+    #map {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 1rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      margin-top: 1.2rem;
+    }
+
+    .route-info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(20, 25, 45, 0.85);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.8rem;
+      padding: 0.8rem 1rem;
+      font-size: 0.8rem;
+      color: #e9eef6;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 500;
+      width: 240px;
+    }
+    .route-info h5 { font-size: 0.9rem; color: #00ffaa; margin-bottom: 0.5rem; }
+    .route-info p { margin: 0.3rem 0; }
+
+    .ticker {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2rem;
+      background: rgba(15, 20, 40, 0.9);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      color: #00ffaa;
+      font-size: 0.8rem;
+    }
+
+    .ticker-content {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll 25s linear infinite;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass">
+    <h2><i data-lucide="route"></i> Smart Clean Route Finder</h2>
+    <form id="routeForm">
+      <div class="mb-2">
+        <label for="source" class="form-label"><i class="fa-solid fa-location-dot"></i> Source</label>
+        <input type="text" id="source" class="form-control" placeholder="e.g. India Gate">
+      </div>
+      <div class="mb-2">
+        <label for="destination" class="form-label"><i class="fa-solid fa-flag-checkered"></i> Destination</label>
+        <input type="text" id="destination" class="form-control" placeholder="e.g. Red Fort">
+      </div>
+      <div class="text-center mt-3">
+        <button type="submit" class="btn"><i class="fa-solid fa-magnifying-glass"></i> Find Routes</button>
+      </div>
+    </form>
+
+    <div id="map" class="position-relative">
+      <div id="routeInfo" class="route-info d-none">
+        <h5><i class="fa-solid fa-circle-info"></i> Cleanest Route</h5>
+        <p><i class="fa-solid fa-road"></i> Distance: <span id="dist"></span> km</p>
+        <p><i class="fa-solid fa-clock"></i> Time: <span id="time"></span> mins</p>
+        <p><i class="fa-solid fa-cloud"></i> PM10: <span id="pm"></span> µg/m³</p>
+        <p><i class="fa-solid fa-chart-bar"></i> AQI: <span id="aqi"></span></p>
+      </div>
+    </div>
+
+    <p class="mt-2 text-info small text-center" id="status">Enter source and destination to calculate route...</p>
+  </div>
+
+  <div class="ticker">
+    <div class="ticker-content">
+      ⚠️ Live Updates: Moderate AQI in Delhi • 🚦 Traffic near CP • 🌧️ Light showers in evening • 🚘 Prefer clean routes with lower PM10
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const map = L.map('map').setView([28.61, 77.23], 11);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, subdomains: 'abcd'
+    }).addTo(map);
+
+    const statusEl = document.getElementById("status");
+    const infoBox = document.getElementById("routeInfo");
+    let routeLayers = [];
+
+    document.getElementById('routeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const src = document.getElementById('source').value.trim();
+      const dst = document.getElementById('destination').value.trim();
+      if (!src || !dst) return alert('Enter both source and destination!');
+
+      statusEl.textContent = "📍 Geocoding...";
+      const [srcCoord, dstCoord] = await Promise.all([geocode(src), geocode(dst)]);
+      if (!srcCoord || !dstCoord) return statusEl.textContent = "❌ Invalid locations";
+
+      routeLayers.forEach(l => map.removeLayer(l));
+      L.circleMarker(srcCoord, { radius: 6, color: 'white', fillColor: 'white', fillOpacity: 0.9 }).addTo(map);
+      L.circleMarker(dstCoord, { radius: 6, color: 'white', fillColor: 'white', fillOpacity: 0.9 }).addTo(map);
+
+      statusEl.textContent = "🧭 Fetching routes...";
+      const routes = await getRoutes(srcCoord, dstCoord);
+      if (!routes.length) return statusEl.textContent = "❌ No route found";
+
+      let cleanest = routes[0];
+      let shortest = routes[0];
+      for (const r of routes) {
+        if (r.avgPM < cleanest.avgPM) cleanest = r;
+        if (r.distance < shortest.distance) shortest = r;
+      }
+
+      routes.forEach(r => {
+        const color = r === cleanest ? 'lime' : r === shortest ? 'red' : '#888';
+        const line = L.polyline(r.coords, { color, weight: 4, opacity: 0.9 }).addTo(map);
+        routeLayers.push(line);
+      });
+
+      const distKm = (cleanest.distance / 1000).toFixed(2);
+      const timeMin = (cleanest.duration / 60).toFixed(0);
+      const pm = cleanest.avgPM.toFixed(1);
+      const aqi = pm < 50 ? "Good 🟢" : pm < 100 ? "Moderate 🟡" : "Poor 🔴";
+
+      document.getElementById("dist").textContent = distKm;
+      document.getElementById("time").textContent = timeMin;
+      document.getElementById("pm").textContent = pm;
+      document.getElementById("aqi").textContent = aqi;
+      infoBox.classList.remove("d-none");
+
+      statusEl.textContent = `✅ Cleanest route displayed (PM10 ≈ ${pm} µg/m³)`;
+      map.fitBounds(L.polyline(cleanest.coords).getBounds());
+    });
+
+    async function geocode(place) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      return d[0] ? [parseFloat(d[0].lat), parseFloat(d[0].lon)] : null;
+    }
+
+    async function getPM10(lat, lon) {
+      const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm10&timezone=auto`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.hourly && data.hourly.pm10 ? data.hourly.pm10[0] : 50;
+    }
+
+    async function getRoutes(src, dst) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${src[1]},${src[0]};${dst[1]},${dst[0]}?overview=full&alternatives=true&geometries=geojson`;
+      const r = await fetch(url);
+      const data = await r.json();
+      if (!data.routes) return [];
+      const result = [];
+
+      for (const rt of data.routes) {
+        const coords = rt.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+        const sampled = coords.filter((_, i) => i % 25 === 0);
+        const pmVals = [];
+        for (const [lat, lon] of sampled) {
+          const val = await getPM10(lat, lon);
+          pmVals.push(val);
+        }
+        const avgPM = pmVals.reduce((a,b)=>a+b,0)/pmVals.length;
+        result.push({ coords, distance: rt.distance, duration: rt.duration, avgPM });
+      }
+      return result;
+    }
+  </script>
+</body>
+</html>

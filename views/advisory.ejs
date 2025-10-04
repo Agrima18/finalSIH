@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Health Advisory | Delhi AQI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: 
+        linear-gradient(135deg, rgba(15,20,40,0.8), rgba(20,30,60,0.8)),
+        url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    .health-widget {
+      max-width: 650px;
+      margin: 60px auto;
+      padding: 30px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    p.text-muted {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #ccc !important;
+    }
+
+    .form-label {
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input[type="number"], input[type="checkbox"] {
+      accent-color: #0d6efd;
+    }
+
+    .hw-output {
+      margin-top: 25px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #hw-aqi-display {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    #hw-aqi-indicator {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      color: #fff;
+      margin-left: 8px;
+    }
+
+    /* AQI Progress Gauge */
+    .aqi-gauge {
+      margin-top: 15px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      height: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .aqi-gauge-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 12px;
+      transition: width 1s ease-in-out, background-color 0.5s;
+    }
+
+    #hw-weather {
+      margin-top: 15px;
+      font-size: 0.95rem;
+      color: #ddd;
+    }
+
+    #hw-warning {
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    #hw-personalized {
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    #hw-actions ul {
+      margin: 10px 0;
+      padding-left: 20px;
+      color: #ccc;
+    }
+
+    #hw-speak-btn {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #198754;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    #hw-speak-btn:hover {
+      background: #157347;
+      transform: scale(1.05);
+    }
+
+    #hw-update-btn {
+      margin-top: 15px;
+      padding: 10px;
+      font-weight: 500;
+      border-radius: 8px;
+      background: #0d6efd;
+      border: none;
+    }
+    #hw-update-btn:hover {
+      background: #0b5ed7;
+    }
+
+    #hw-ai-advice {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      color: #e0e0e0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="health-widget">
+    <h2><i class="fas fa-heartbeat text-danger"></i> Smart Health Advisory</h2>
+    <p class="text-muted">Personalized air quality & health guidance for Delhi</p>
+
+    <!-- Form -->
+    <div class="hw-form">
+      <label for="hw-age" class="form-label">Age</label>
+      <input id="hw-age" type="number" class="form-control" min="0" max="120" value="28">
+
+      <label class="form-label mt-3">Pre-existing Conditions</label>
+      <div class="d-flex flex-wrap gap-3">
+        <div><input type="checkbox" value="asthma"> Asthma</div>
+        <div><input type="checkbox" value="heart"> Heart Disease</div>
+        <div><input type="checkbox" value="diabetes"> Diabetes</div>
+        <div><input type="checkbox" value="none"> None</div>
+      </div>
+
+      <button id="hw-update-btn" class="btn btn-primary w-100 mt-3">
+        <i class="fas fa-sync-alt"></i> Update Health Advisory
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div class="hw-output mt-4">
+      <div id="hw-aqi-display"></div>
+      <div class="aqi-gauge mt-2">
+        <div class="aqi-gauge-fill"></div>
+      </div>
+      <div id="hw-weather"></div>
+      <div id="hw-warning"></div>
+      <div id="hw-personalized"></div>
+      <div id="hw-actions"></div>
+      <button id="hw-speak-btn"><i class="fas fa-volume-up"></i> Speak Advice</button>
+      <div id="hw-ai-advice" class="mt-3"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const aqiDisplay = document.getElementById("hw-aqi-display");
+      const weatherDiv = document.getElementById("hw-weather");
+      const warning = document.getElementById("hw-warning");
+      const personalized = document.getElementById("hw-personalized");
+      const actions = document.getElementById("hw-actions");
+      const aiAdvice = document.getElementById("hw-ai-advice");
+      const gaugeFill = document.querySelector(".aqi-gauge-fill");
+
+      let currentAQI = 180, temp = 29, humidity = 60, condition = "Partly Cloudy", latestAdvice = "";
+
+      updateUI();
+
+      function updateUI() {
+        const risk = getRisk(currentAQI);
+        const color = getColor(currentAQI);
+        aqiDisplay.innerHTML = `
+          <i class="fas fa-leaf text-success"></i> Current AQI in <b>Delhi</b>: 
+          <strong>${currentAQI}</strong> 
+          <span id="hw-aqi-indicator" style="background-color:${color}">${risk}</span>
+        `;
+        gaugeFill.style.width = `${(currentAQI / 500) * 100}%`;
+        gaugeFill.style.backgroundColor = color;
+        weatherDiv.innerHTML = `
+          <i class="fas fa-thermometer-half"></i> ${temp}°C | 
+          <i class="fas fa-tint"></i> ${humidity}% | 
+          <i class="fas fa-cloud"></i> ${condition}`;
+      }
+
+      document.getElementById("hw-update-btn").addEventListener("click", () => {
+        const age = parseInt(document.getElementById("hw-age").value);
+        const selected = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(c => c.value);
+        const hasCondition = selected.some(v => ["asthma","heart","diabetes"].includes(v));
+        const risk = getRisk(currentAQI);
+        const color = getColor(currentAQI);
+
+        warning.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Health Risk: <b style="color:${color}">${risk}</b>`;
+        personalized.innerHTML = `<i class="fas fa-user"></i> Age: ${age} | Conditions: ${selected.join(", ") || "None"}`;
+        actions.innerHTML = `
+          <ul>
+            <li>Check air quality alerts regularly</li>
+            <li>${risk === "Hazardous" ? "Stay indoors and use air purifiers" : "Limit outdoor activities"}</li>
+            <li>Wear N95 masks if AQI exceeds 150</li>
+          </ul>`;
+
+        aiAdvice.innerHTML = `<i class="fas fa-brain text-info"></i> Based on your age and conditions, ${risk.toLowerCase()} air may affect your health. Take precautions and avoid prolonged exposure.`;
+      });
+
+      function getColor(aqi) {
+        if (aqi <= 50) return "#4caf50";
+        if (aqi <= 100) return "#cddc39";
+        if (aqi <= 200) return "#ff9800";
+        if (aqi <= 300) return "#f44336";
+        return "#6a1b9a";
+      }
+
+      function getRisk(aqi) {
+        if (aqi <= 50) return "Good";
+        if (aqi <= 100) return "Moderate";
+        if (aqi <= 200) return "Unhealthy";
+        if (aqi <= 300) return "Very Unhealthy";
+        return "Hazardous";
+      }
+    });
+  </script>
+</body>
+</html>

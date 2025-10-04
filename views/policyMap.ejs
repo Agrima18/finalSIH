@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delhi Air Policy Hex Map</title>
+
+  <!-- ✅ Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hex:hover { fill: #eef2ff; cursor: pointer; }
+    .hex.active { fill: #dbeafe; stroke-width: 2.5; }
+  </style>
+</head>
+
+<body class="bg-gradient-to-b from-white to-slate-50">
+  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
+    <h1 class="text-2xl sm:text-3xl font-bold">Delhi Air Policy — Hex Map</h1>
+    <p class="text-slate-600 text-sm sm:text-base mt-1">
+      Click a district hex to view implemented policies.
+    </p>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-2 sm:px-4 pb-16 relative">
+    <div class="relative rounded-2xl border bg-white shadow-sm overflow-hidden">
+      <svg id="hexMap" viewBox="0 0 800 600" class="w-full max-w-none">
+        <!-- Hexes will be drawn here -->
+      </svg>
+    </div>
+
+    <!-- ✅ Side Panel -->
+    <div id="panel"
+      class="hidden fixed right-0 top-0 h-full w-full sm:w-[400px] bg-white/95 backdrop-blur z-40 shadow-2xl border-l border-slate-200 flex flex-col">
+      <div class="p-4 border-b flex items-center justify-between">
+        <h3 id="panelTitle" class="text-lg font-semibold">District Policies</h3>
+        <button onclick="closePanel()" class="px-3 py-1.5 rounded-lg text-sm bg-slate-100 hover:bg-slate-200">Close</button>
+      </div>
+      <div id="policyList" class="p-4 overflow-y-auto"></div>
+    </div>
+  </main>
+
+  <script>
+    // ================== Data =====================
+    const HEX_SIZE = 60;
+    const SQRT3 = Math.sqrt(3);
+
+    const districts = [
+      { id: "nd", name: "New Delhi", q: 0, r: 0 },
+      { id: "cent", name: "Central", q: -1, r: 0 },
+      { id: "e", name: "East", q: 1, r: 0 },
+      { id: "ne", name: "North East", q: 1, r: -1 },
+      { id: "n", name: "North", q: 0, r: -1 },
+      { id: "nw", name: "North West", q: -1, r: -1 },
+      { id: "sw", name: "South West", q: -1, r: 1 },
+      { id: "s", name: "South", q: 0, r: 1 },
+      { id: "se", name: "South East", q: 1, r: 1 },
+      { id: "w", name: "West", q: -2, r: 0 },
+      { id: "shd", name: "Shahdara", q: 2, r: 0 }
+    ];
+
+    const policies = {
+      nd: [
+        { title: "Smog Tower at Connaught Place", category: "Technology", year: 2021 },
+        { title: "Odd-Even Scheme", category: "Traffic Mgmt", year: 2016 },
+        { title: "Green Delhi App", category: "Monitoring", year: 2020 },
+      ],
+      e: [
+        { title: "Smog Tower at Anand Vihar", category: "Technology" },
+        { title: "Dust Control Measures", category: "Dust Control" }
+      ],
+      se: [
+        { title: "Badarpur Thermal Plant Closure", category: "Source Control", year: 2018 },
+      ],
+      sw: [
+        { title: "E-Bus Depots in Dwarka", category: "EV & Mobility" },
+      ],
+    };
+
+    const colors = {
+      "Technology": "bg-indigo-100 text-indigo-800",
+      "Traffic Mgmt": "bg-sky-100 text-sky-800",
+      "Dust Control": "bg-amber-100 text-amber-800",
+      "Monitoring": "bg-gray-100 text-gray-800",
+      "Source Control": "bg-emerald-100 text-emerald-800",
+      "EV & Mobility": "bg-violet-100 text-violet-800"
+    };
+
+    // ================== Helpers =====================
+    function axialToPixel(q, r) {
+      const x = HEX_SIZE * SQRT3 * (q + r / 2);
+      const y = HEX_SIZE * 1.5 * r;
+      return { x, y };
+    }
+
+    function hexPoints(cx, cy) {
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const angle = Math.PI / 180 * (60 * i - 30);
+        pts.push(`${cx + HEX_SIZE * Math.cos(angle)},${cy + HEX_SIZE * Math.sin(angle)}`);
+      }
+      return pts.join(" ");
+    }
+
+    // ================== Draw Map =====================
+    const svg = document.getElementById("hexMap");
+
+    const centers = districts.map(d => {
+      const { x, y } = axialToPixel(d.q, d.r);
+      return { ...d, x: x + 300, y: y + 250 };
+    });
+
+    centers.forEach(d => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      polygon.setAttribute("points", hexPoints(d.x, d.y));
+      polygon.setAttribute("fill", "#f8fafc");
+      polygon.setAttribute("stroke", "#0f172a");
+      polygon.setAttribute("stroke-width", "1.2");
+      polygon.classList.add("hex");
+      polygon.addEventListener("click", () => showPanel(d));
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", d.x);
+      text.setAttribute("y", d.y + 4);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("font-size", "12");
+      text.setAttribute("font-weight", "bold");
+      text.textContent = d.name;
+
+      g.appendChild(polygon);
+      g.appendChild(text);
+      svg.appendChild(g);
+    });
+
+    // ================== Panel Logic =====================
+    function showPanel(district) {
+      document.getElementById("panelTitle").textContent = district.name;
+      const list = document.getElementById("policyList");
+      const data = policies[district.id] || [];
+      list.innerHTML = data.length
+        ? data.map(p => `
+          <div class="p-3 border rounded-xl mb-3">
+            <div class="flex justify-between">
+              <p class="text-sm font-medium">${p.title}</p>
+              <span class="text-xs px-2 py-1 rounded-full ${colors[p.category] || 'bg-slate-100 text-slate-700'}">${p.category}</span>
+            </div>
+            ${p.year ? `<p class="text-xs text-slate-500 mt-1">Year: ${p.year}</p>` : ""}
+          </div>
+        `).join("")
+        : `<p class="text-sm text-slate-500">No data available.</p>`;
+
+      document.getElementById("panel").classList.remove("hidden");
+    }
+
+    function closePanel() {
+      document.getElementById("panel").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
