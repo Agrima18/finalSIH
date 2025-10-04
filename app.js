@@ -156,7 +156,7 @@ app.get("/greenzones", async (req, res) => {
 
 
 // Root redirect
-app.get("/", (req, res) => res.redirect("/greenzones"));
+app.get("/dashboard", (req, res) => {res.render("dashboard", { layout: "layout/boilerplate" })});
 
 // 🧠 Health Page
 app.get("/health", (req, res) => res.render("health"));
