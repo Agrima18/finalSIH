@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= zoneName %> – Zone Dashboard | Vaayu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+  <header class="max-w-6xl mx-auto px-4 pt-6 pb-4">
+    <h1 class="text-3xl font-bold"><%= zoneName %> – Zone Dashboard</h1>
+    <p class="text-slate-600 text-sm mt-1">
+      Detailed air quality insights and planning simulation for <%= zoneName %>.
+    </p>
+    <div class="flex items-center gap-3 mt-3">
+      <a href="/" class="text-sky-600 text-sm hover:underline">← Back to Main Dashboard</a>
+      <div class="flex items-center gap-2">
+        <label for="zoneSelect" class="text-sm font-semibold">Switch Zone:</label>
+        <select id="zoneSelect" class="border rounded px-2 py-1 text-sm">
+          <option disabled selected>Choose a zone</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto space-y-6 px-4 pb-12">
+
+    <!-- 📊 AQI Source Breakdown -->
+    <section class="bg-white p-5 rounded-lg border shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">AQI Source Breakdown</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <canvas id="aqiBreakdownChart" height="200"></canvas>
+        </div>
+        <div class="text-sm text-slate-600 leading-relaxed">
+          <p>Estimated contribution of sources in <strong><%= zoneName %></strong>:</p>
+          <ul class="list-disc ml-5 mt-2 space-y-1">
+            <li>🛠️ Industry Emissions: <span id="indVal"></span>%</li>
+            <li>🚗 Traffic: <span id="trafficVal"></span>%</li>
+            <li>🏗️ Construction Dust: <span id="dustVal"></span>%</li>
+            <li>🔥 Waste Burning: <span id="wasteVal"></span>%</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🕒 Hourly AQI Trend -->
+    <section class="bg-white p-5 rounded-lg border shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">Hourly AQI Trend</h2>
+      <canvas id="hourlyAQIChart" height="150"></canvas>
+    </section>
+
+    <!-- 🧠 Smart Planning Assistant -->
+    <section class="bg-white p-5 rounded-lg border shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">🧠 Smart Planning Assistant</h2>
+      <p class="text-slate-500 text-sm mb-4">
+        Plan new infrastructure in <%= zoneName %> and simulate air quality impact.
+      </p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Select Type</label>
+          <select id="setupType" class="w-full border rounded px-3 py-2">
+            <option value="Industry">Industry</option>
+            <option value="Residential">Residential Colony</option>
+            <option value="EV Hub">EV Hub</option>
+            <option value="School">School</option>
+            <option value="Park">Urban Park</option>
+          </select>
+
+          <label class="block text-sm font-semibold mt-3 mb-1">Area (sq.m)</label>
+          <input id="areaInput" type="number" class="w-full border rounded px-3 py-2" placeholder="e.g. 10000" />
+
+          <button onclick="evaluatePlan()" class="mt-4 bg-sky-600 text-white px-4 py-2 rounded hover:bg-sky-700">
+            Evaluate Plan
+          </button>
+        </div>
+
+        <div id="resultBox" class="bg-slate-50 border rounded p-4 text-sm">
+          <p>📄 <strong>Results</strong> will appear here after evaluation.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ✅ All 33 zones
+    const subdivisions = [
+      "Civil Lines","Karol Bagh","Daryaganj","Preet Vihar","Mayur Vihar","Gandhi Nagar",
+      "Chanakyapuri","Delhi Cantt","Vasant Vihar","Model Town","Alipur","Narela",
+      "Karawal Nagar","Seelampur","Yamuna Vihar","Kanjhawala","Rohini","Pitampura",
+      "Vivek Vihar","Shahdara","Seemapuri","Hauz Khas","Mehrauli","Saket",
+      "Lajpat Nagar","Kalkaji","Sarita Vihar","Dwarka","Kapashera","Najafgarh",
+      "Patel Nagar","Punjabi Bagh","Rajouri Garden"
+    ];
+
+    // Populate dropdown
+    const zoneSelect = document.getElementById("zoneSelect");
+    subdivisions.forEach(z => {
+      const opt = document.createElement("option");
+      opt.value = z;
+      opt.textContent = z;
+      zoneSelect.appendChild(opt);
+    });
+    zoneSelect.addEventListener("change", e => {
+      const selected = e.target.value;
+      window.location.href = `/zone/${selected.toLowerCase().replace(/ /g, "-")}`;
+    });
+
+    // Dummy AQI source data (you can replace with real API data later)
+    const sourceData = {
+      industry: Math.floor(Math.random() * 30) + 30,
+      traffic: Math.floor(Math.random() * 30) + 20,
+      dust: Math.floor(Math.random() * 20) + 10,
+      waste: Math.floor(Math.random() * 15) + 5
+    };
+    const total = sourceData.industry + sourceData.traffic + sourceData.dust + sourceData.waste;
+    Object.keys(sourceData).forEach(k => sourceData[k] = ((sourceData[k]/total)*100).toFixed(1));
+
+    document.getElementById('indVal').textContent = sourceData.industry;
+    document.getElementById('trafficVal').textContent = sourceData.traffic;
+    document.getElementById('dustVal').textContent = sourceData.dust;
+    document.getElementById('wasteVal').textContent = sourceData.waste;
+
+    // 🥧 Pie Chart
+    new Chart(document.getElementById('aqiBreakdownChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Industry', 'Traffic', 'Dust', 'Waste Burning'],
+        datasets: [{
+          data: Object.values(sourceData),
+          backgroundColor: ['#ef4444', '#facc15', '#60a5fa', '#a3e635']
+        }]
+      },
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // 📈 Hourly AQI trend
+    const hours = Array.from({length: 24}, (_, i) => i + ":00");
+    const hourlyAQI = hours.map((_, i) => 140 + Math.sin(i/3) * 15 + Math.random()*10);
+    new Chart(document.getElementById('hourlyAQIChart'), {
+      type: 'line',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'AQI',
+          data: hourlyAQI,
+          borderColor: '#3b82f6',
+          tension: 0.3,
+          fill: false
+        }]
+      },
+      options: {
+        scales: {
+          y: { title: { display: true, text: 'AQI Level' } },
+          x: { title: { display: true, text: 'Hour of Day' } }
+        }
+      }
+    });
+
+    // 🧠 Smart Planning Evaluation
+    function evaluatePlan() {
+      const type = document.getElementById('setupType').value;
+      const area = parseFloat(document.getElementById('areaInput').value || 0);
+      const baseAQI = 180; // current average
+      let addedAQI = 0;
+
+      if (type === "Industry") addedAQI = area / 500 + 25;
+      if (type === "Residential") addedAQI = area / 800 + 10;
+      if (type === "EV Hub") addedAQI = -5;
+      if (type === "School") addedAQI = 0;
+      if (type === "Park") addedAQI = -area / 1000 - 10;
+
+      const newAQI = baseAQI + addedAQI;
+      let result = `<p>📊 Projected AQI after setup: <strong>${newAQI.toFixed(1)}</strong></p>`;
+
+      if (newAQI > 200) {
+        result += `<p class='mt-2 text-red-600'>❌ Exceeds safe AQI limit (200). Mitigation needed:</p>
+          <ul class='list-disc ml-5 text-slate-700'>
+            <li>Install air scrubbers</li>
+            <li>Green buffer of 30%</li>
+            <li>Limit operating hours</li>
+          </ul>`;
+      } else if (newAQI < baseAQI) {
+        result += `<p class='mt-2 text-emerald-600'>✅ Improvement expected due to green/EV infrastructure.</p>`;
+      } else {
+        result += `<p class='mt-2 text-sky-600'>✅ Within acceptable limits under current norms.</p>`;
+      }
+
+      document.getElementById('resultBox').innerHTML = result;
+    }
+  </script>
+</body>
+</html>

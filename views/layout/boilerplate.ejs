@@ -14,133 +14,125 @@
   <!-- Flatpickr -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-  <style>
-    :root {
-      --glass-bg: rgba(255, 255, 255, 0.45);
-      --glass-border: rgba(255, 255, 255, 0.25);
-      --shadow: rgba(0, 0, 0, 0.08);
-      --accent-gradient: linear-gradient(135deg, #6dd5ed, #2193b0);
-      --text-dark: #2b2e4a;
-      --text-light: #f0f0f0;
-    }
+ <style>
+  :root {
+    --nav-bg: linear-gradient(90deg, rgba(173, 216, 230, 0.8), rgba(224, 247, 250, 0.75));
+    --nav-border: rgba(255, 255, 255, 0.3);
+    --nav-shadow: rgba(0, 0, 0, 0.1);
+    --accent-gradient: linear-gradient(135deg, #00b4db, #0083b0);
+    --text-dark: #1b2a49;
+  }
 
-    body {
-      background: linear-gradient(135deg, #e0f7fa, #ffffff);
-      font-family: "Segoe UI", "Poppins", sans-serif;
-      color: var(--text-dark);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  /* 🌬️ Glass Navbar */
+.navbar-glass {
+  backdrop-filter: blur(18px);             /* glass blur */
+  background: var(--nav-bg);               /* white glass bg */
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: 0 6px 20px var(--nav-shadow);
+  padding: 0.8rem 2rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  top: 0;                                  /* stick to top */
+  left: 0;
+}
 
-    /* 🌬️ Glass Navbar */
-    .navbar-glass {
-      backdrop-filter: blur(18px);
-      background: var(--glass-bg);
-      border-bottom: 1px solid var(--glass-border);
-      box-shadow: 0 6px 20px var(--shadow);
-      padding: 0.8rem 2rem;
-      position: fixed;
-      width: 100%;
-      z-index: 1000;
-    }
+  .navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+  .nav-link {
+    color: var(--text-dark) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
 
-    .nav-link {
-      color: var(--text-dark) !important;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-    .nav-link:hover {
-      color: #00acc1 !important;
-    }
+  .nav-link:hover,
+  .nav-link.active {
+    background: rgba(255, 255, 255, 0.4);
+    color: #0077b6 !important;
+  }
 
-    /* 🌫️ Module Buttons */
-    .module-btn {
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid var(--glass-border);
-      border-radius: 0.7rem;
-      color: var(--text-dark);
-      transition: all 0.3s ease;
-      font-weight: 600;
-    }
-    .module-btn:hover {
-      background: var(--accent-gradient);
-      color: #fff;
-      box-shadow: 0 6px 20px rgba(33, 147, 176, 0.3);
-      transform: translateY(-2px);
-    }
+  /* 🌫️ Dropdown Selects */
+  .form-select {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--nav-border);
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    border-radius: 6px;
+  }
 
-    /* ✨ Auth Buttons */
-    .btn-glass {
-      border-radius: 0.7rem;
-      border: 1px solid var(--glass-border);
-      background: rgba(255, 255, 255, 0.5);
-      color: var(--text-dark);
-      transition: 0.3s;
-      font-weight: 600;
-    }
-    .btn-glass:hover {
-      background: var(--accent-gradient);
-      color: #fff;
-      transform: translateY(-2px);
-    }
+  /* ☀️/🌙 Theme Button */
+  .btn-theme {
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--nav-border);
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+  }
+  .btn-theme:hover {
+    background: var(--accent-gradient);
+    color: #fff;
+    transform: translateY(-1px);
+  }
 
-    /* Loader */
-    #loader {
-      transition: opacity 0.8s ease;
-      background: rgba(255, 255, 255, 0.85);
-    }
-    .fade-out { opacity: 0; pointer-events: none; }
+  /* ✨ Login Button */
+  .btn-login {
+    background: var(--accent-gradient);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    padding: 6px 14px;
+    transition: all 0.3s ease;
+  }
+  .btn-login:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+</style>
 
-    /* Padding for content */
-    .content {
-      padding-top: 6rem;
-      padding-bottom: 2rem;
-    }
-  </style>
+<nav class="navbar navbar-expand-lg navbar-glass">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="#"><i class="fas fa-wind"></i> AQI Dashboard</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link active" href="/dashboard">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/health">Health</a></li>
+        <li class="nav-item"><a class="nav-link" href="/citizen">citizen</a></li>
+        <li class="nav-item"><a class="nav-link" href="/policyMap">Policy</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <select class="form-select form-select-sm">
+          <option selected>AQI-US</option>
+          <option>AQI-IN</option>
+        </select>
+        <select class="form-select form-select-sm">
+          <option selected>English-IN</option>
+          <option>हिंदी</option>
+        </select>
+        <button class="btn btn-theme btn-sm"><i class="fas fa-moon"></i></button>
+        <button class="btn btn-login btn-sm">Login</button>
+      </div>
+    </div>
+  </div>
+</nav></script>
 </head>
 
 <body>
-  <!-- Loader -->
-  <div id="loader" class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100" style="z-index: 2000;">
-    <div class="spinner-border text-info" role="status" style="width: 3rem; height: 3rem;"></div>
-  </div>
-
-  <!-- 🌈 Glass Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-glass">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/dashboard"><i class="fa-solid fa-wind"></i> TEAM VAYU</a>
-
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon text-dark"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-3 mt-3 mt-lg-0">
-          <a href="/citizen" class="btn module-btn"><i class="fas fa-user me-2"></i> Citizen App</a>
-          <a href="/airecomandation" class="btn module-btn"><i class="fas fa-map-marker-alt me-2"></i> Source Identification</a>
-          <a href="/health" class="btn module-btn"><i class="fas fa-heartbeat me-2"></i> Health Alert</a>
-          <a href="/policy" class="btn module-btn"><i class="fas fa-file-alt me-2"></i> Policy Dashboard</a>
-        </ul>
-
-        <div class="d-flex gap-2 mt-3 mt-lg-0">
-          <a class="btn btn-glass" href="/listings/register"><i class="fa-solid fa-user-plus me-1"></i> Sign Up</a>
-          <a class="btn btn-glass" href="/listings/login"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
-        </div>
-      </div>
-    </div>
-  </nav>
+  
 
   <!-- Main Content -->
   <div class="container content">

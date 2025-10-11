@@ -103,3 +103,29 @@
 .aqi-unhealthy { color: red; font-weight: bold; }
 .aqi-veryunhealthy { color: purple; font-weight: bold; }
 .aqi-hazardous { color: maroon; font-weight: bold; }
+.hex use {
+  fill: #e5e7eb; /* gray-200 */
+  stroke: #9ca3af; /* gray-400 */
+  stroke-width: 2;
+  transition: fill .15s ease;
+}
+.hex:hover use { fill: #dbeafe; }      /* hover light blue */
+.hex.active use { fill: #2563eb; }     /* blue-600 */
+.hexText {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  fill: #111827;
+  font-weight: 700;
+}
+.hex.active .hexText { fill: #ffffff; }
+
+.donutCenter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-weight: 700;
+  font-size: 24px;
+  pointer-events: none;
+  color: #111827;
+}
