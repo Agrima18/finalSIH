@@ -37,6 +37,23 @@
       padding: 20px;
       transition: transform 0.2s ease;
     }
+     @media (max-width: 768px) {
+      header {
+        text-align: center;
+        padding: 20px 0;
+      }
+      main {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+      .map-glass {
+        height: 350px;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+      }
+    }
     .glass:hover { transform: translateY(-2px); }
 
     /* 🎴 AQI Cards */

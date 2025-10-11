@@ -149,6 +149,23 @@
     .hex.active { fill: #38bdf8; }
 
     /* 🧠 AI Suggestion Cards */
+     @media (max-width: 768px) {
+      header {
+        text-align: center;
+        padding: 20px 0;
+      }
+      main {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+      .map-glass {
+        height: 350px;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+      }
+    }
     .ai-card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
