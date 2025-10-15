@@ -537,24 +537,50 @@
         ).join("") : `<p class='text-slate-400 p-3'>AI suggestions appear based on current policy data and active filters.</p>`;
 
         // --- 3. Render Policy Table ---
-        const rows = [];
-        Object.entries(filtered).forEach(([id, arr]) => {
-            const zoneName = subdivisions.find(s => s.id === id)?.name || id;
-            arr.forEach(p => rows.push(`
-                <tr class="hover:bg-white/10 transition">
-                    <td class="px-4 py-3 border border-white/20">${zoneName}</td>
-                    <td class="px-4 py-3 border border-white/20">${p.title}</td>
-                    <td class="px-4 py-3 border border-white/20">${p.year}</td>
-                    <td class="px-4 py-3 border border-white/20">${p.category}</td>
-                    <td class="px-4 py-3 border border-white/20">${p.description}</td>
-                    <td class="px-4 py-3 border border-white/20 text-center"><a href="${p.link}" target="_blank" class="text-sky-300 hover:underline">Link</a></td>
-                </tr>`));
-        });
-        currentRows = rows; currentPage = 1; renderTable();
+        // --- 3. Render Policy Table (with Grouping) ---
+const groupedByZone = {};
+Object.entries(filtered).forEach(([id, arr]) => {
+    if (arr.length > 0) { // Only process zones that have policies
+        const zoneName = subdivisions.find(s => s.id === id)?.name || id;
+        if (!groupedByZone[zoneName]) {
+            groupedByZone[zoneName] = [];
+        }
+        groupedByZone[zoneName].push(...arr);
+    }
+});
+
+const rows = [];
+for (const zoneName in groupedByZone) {
+    // Add a header row for the zone
+    rows.push(`
+        <tr>
+            <td colspan="6" class="px-4 py-2 bg-sky-100 font-bold text-sky-800 border border-white/20">
+                ${zoneName}
+            </td>
+        </tr>
+    `);
+    
+    // Add the policy rows for that zone
+    groupedByZone[zoneName].forEach(p => {
+        rows.push(`
+            <tr class="hover:bg-white/10 transition">
+                <td class="px-4 py-3 border border-white/20 text-slate-500 italic text-sm">${zoneName}</td>
+                <td class="px-4 py-3 border border-white/20">${p.title}</td>
+                <td class="px-4 py-3 border border-white/20">${p.year}</td>
+                <td class="px-4 py-3 border border-white/20">${p.category}</td>
+                <td class="px-4 py-3 border border-white/20">${p.description}</td>
+                <td class="px-4 py-3 border border-white/20 text-center"><a href="${p.link}" target="_blank" class="text-sky-600 hover:underline">Link</a></td>
+            </tr>
+        `);
+    });
+}
+currentRows = rows; currentPage = 1; renderTable();
+        
     }
     
     // Initial load
     refresh();
     </script>
 </body>
+
 </html>
