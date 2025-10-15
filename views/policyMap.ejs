@@ -1,586 +1,940 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vaayu – <%= zoneName %> | Delhi Air Policy Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* 1. TONE DOWN BACKGROUND and BASE STYLES for FORMALITY */
-        body {
-  font-family: 'Segoe UI', 'Poppins', sans-serif;
-  background: 
-    linear-gradient(135deg, rgba(227, 242, 253, 0.9), rgba(255, 255, 255, 0.95)),
-    url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  color: #2b2d42;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: center;
-  padding: 80px 20px 40px;
-  transition: background 0.6s ease, color 0.6s ease;
+    <meta
+charset="UTF-8" />
+    <meta
+name="viewport" content="width=device-width,
+initial-scale=1" />
+    <title>Vaayu
+– <%= zoneName %> | Delhi Air Policy Dashboard</title>
+    <script
+src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 1. TONE
+DOWN BACKGROUND and BASE STYLES for FORMALITY */
+        body {
+  font-family: 'Segoe
+UI', 'Poppins', sans-serif;
+  background: 
+   linear-gradient(135deg, rgba(227, 242, 253, 0.9), rgba(255, 255, 255,
+0.95)),
+   url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80');
+  background-size:
+cover;
+  background-position:
+center;
+  background-repeat:
+no-repeat;
+ background-attachment: fixed;
+  color: #2b2d42;
+  min-height: 100vh;
+  display: flex;
+  flex-direction:
+column;
+  align-items: center;
+  justify-content:
+flex-start;
+  text-align: center;
+  padding: 80px 20px
+40px;
+  transition:
+background 0.6s ease, color 0.6s ease;
 }
-
-
-  /* 🧊 Glassmorphic Cards */
-  .card {
-    border: none;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(15px);
-    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.08);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0, 119, 182, 0.25);
-  }
-
-  /* ✨ Card Header Text Gradient */
-  .card-header {
-    background: linear-gradient(90deg, #009ffd, #2a2a72);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 700;
-    font-size: 1.05rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  }
-        h1, h2, h3 { color: #0c4a6e; }
-
-    /* 💠 White Cards */
-    .glass, .map-glass {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      color: #1e293b;
-    }
-
-    /* 🗺️ Map Card */
-    .map-glass {
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* 🔲 Inputs */
-    input, select {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      color: #1e293b;
-      border-radius: 6px;
-      padding: 0.5rem 0.75rem;
-      width: 100%;
-      transition: all 0.3s ease;
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 3px rgba(56,189,248,0.2);
-    }
-
-    button {
-      font-weight: 600;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    button:hover {
-      transform: translateY(-1px);
-    }
-
-    /* 🍩 Donut Center */
-    .donutCenter {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      font-weight: 600;
-      font-size: 1.25rem;
-      color: #1e293b;
-    }
-
-    /* 🧭 Tooltip */
-    .tooltip {
-      position: absolute;
-      pointer-events: none;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      padding: 6px 10px;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      color: #1e293b;
-      z-index: 50;
-    }
-
-    /* 🧱 Table */
-    table {
-      color: #1e293b;
-      border-collapse: collapse;
-    }
-    thead {
-      background-color: #e0f2fe;
-      font-weight: 600;
-    }
-    tbody tr:hover {
-      background-color: #f1f5f9;
-      transition: 0.3s;
-    }
-    th, td {
-      border: 1px solid #e2e8f0;
-      padding: 0.75rem 1rem;
-      text-align: left;
-    }
-
-    /* 🟦 Hex Map */
-    .hex {
-      fill: #e0f2fe;
-      stroke: #0284c7;
-      stroke-width: 1.5;
-      transition: fill 0.3s;
-    }
-    .hex:hover { fill: #7dd3fc; cursor: pointer; }
-    .hex.active { fill: #38bdf8; }
-
-    /* 🧠 AI Suggestion Cards */
-     @media (max-width: 768px) {
-      header {
-        text-align: center;
-        padding: 20px 0;
-      }
-      main {
-        grid-template-columns: 1fr !important;
-        gap: 20px;
-      }
-      .map-glass {
-        height: 350px;
-      }
-      svg {
-        width: 100%;
-        height: auto;
-      }
-    }
-    .ai-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px;
-      transition: background 0.3s;
-    }
-    .ai-card:hover { background: #e0f2fe; }
-  </style>
+ 
+ 
+  /* 🧊
+Glassmorphic Cards */
+  .card {
+    border: none;
+    border-radius:
+20px;
+    background:
+rgba(255, 255, 255, 0.75);
+    backdrop-filter:
+blur(15px);
+    box-shadow: 0 8px
+24px rgba(0, 123, 255, 0.08);
+    transition:
+transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card:hover {
+    transform:
+translateY(-4px);
+    box-shadow: 0 10px
+28px rgba(0, 119, 182, 0.25);
+  }
+ 
+  /* ✨
+Card Header Text Gradient */
+  .card-header {
+    background:
+linear-gradient(90deg, #009ffd, #2a2a72);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    font-size:
+1.05rem;
+    border-bottom: 1px
+solid rgba(0, 0, 0, 0.05);
+  }
+        h1, h2, h3 {
+color: #0c4a6e; }
+ 
+    /* 💠
+White Cards */
+    .glass, .map-glass
+{
+      background:
+#ffffff;
+      border: 1px
+solid #e2e8f0;
+      border-radius:
+0.75rem;
+      box-shadow: 0
+4px 10px rgba(0, 0, 0, 0.05);
+      color: #1e293b;
+    }
+ 
+    /* 🗺️
+Map Card */
+    .map-glass {
+      position:
+relative;
+      overflow:
+hidden;
+    }
+ 
+    /* 🔲
+Inputs */
+    input, select {
+      background:
+#f8fafc;
+      border: 1px
+solid #cbd5e1;
+      color: #1e293b;
+      border-radius:
+6px;
+      padding: 0.5rem
+0.75rem;
+      width: 100%;
+      transition: all
+0.3s ease;
+    }
+    input:focus,
+select:focus {
+      outline: none;
+      border-color:
+#38bdf8;
+      box-shadow: 0 0
+0 3px rgba(56,189,248,0.2);
+    }
+ 
+    button {
+      font-weight:
+600;
+      transition:
+background 0.3s ease, transform 0.2s ease;
+    }
+    button:hover {
+      transform:
+translateY(-1px);
+    }
+ 
+    /* 🍩
+Donut Center */
+    .donutCenter {
+      position:
+absolute;
+      inset: 0;
+      display: grid;
+      place-items:
+center;
+      text-align:
+center;
+      font-weight:
+600;
+      font-size:
+1.25rem;
+      color: #1e293b;
+    }
+ 
+    /* 🧭
+Tooltip */
+    .tooltip {
+      position:
+absolute;
+      pointer-events:
+none;
+      background:
+#ffffff;
+      border: 1px
+solid #cbd5e1;
+      padding: 6px
+10px;
+      font-size:
+0.9rem;
+      border-radius:
+6px;
+      box-shadow: 0
+2px 8px rgba(0, 0, 0, 0.1);
+      color: #1e293b;
+      z-index: 50;
+    }
+ 
+    /* 🧱
+Table */
+    table {
+      color: #1e293b;
+      border-collapse:
+collapse;
+    }
+    thead {
+     background-color: #e0f2fe;
+      font-weight:
+600;
+    }
+    tbody tr:hover {
+     background-color: #f1f5f9;
+      transition:
+0.3s;
+    }
+    th, td {
+      border: 1px
+solid #e2e8f0;
+      padding: 0.75rem
+1rem;
+      text-align:
+left;
+    }
+ 
+    /* 🟦
+Hex Map */
+    .hex {
+      fill: #e0f2fe;
+      stroke: #0284c7;
+      stroke-width:
+1.5;
+      transition: fill
+0.3s;
+    }
+    .hex:hover { fill:
+#7dd3fc; cursor: pointer; }
+    .hex.active {
+fill: #38bdf8; }
+ 
+    /* 🧠
+AI Suggestion Cards */
+     @media
+(max-width: 768px) {
+      header {
+        text-align:
+center;
+        padding: 20px
+0;
+      }
+      main {
+       grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+      .map-glass {
+        height: 350px;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+      }
+    }
+    .ai-card {
+      background:
+#f8fafc;
+      border: 1px
+solid #e2e8f0;
+      border-radius:
+8px;
+      padding: 10px;
+      transition:
+background 0.3s;
+    }
+    .ai-card:hover {
+background: #e0f2fe; }
+  </style>
 </head>
 </head>
-
+ 
 <body class="text-slate-50">
-    <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 text-center">
-        <h1 class="text-sky-300">Vaayu – Delhi Air Policy Dashboard</h1> 
-        <p class="text-slate-400 mt-2 text-base">Explore 33 sub-divisions’ air quality interventions</p>
-        <h2 class="mt-4 text-sky-200">Selected Zone: <%= zoneName %></h2>
-    </header>
-
-    <main class="max-w-7xl mx-auto grid grid-cols-12 gap-6 px-4 pb-16">
-
-        <aside class="col-span-12 md:col-span-3 glass p-6 border border-white/10">
-            <label class="text-sm font-semibold text-sky-200">Search Policy Database</label>
-            <input id="search" type="text" placeholder="Search policies..." 
-                    class="w-full mt-2 border border-white/30 bg-white/10 text-white placeholder-slate-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400">
-
-            <div class="mt-6">
-                <label class="font-semibold text-sky-200">Filter by Policy Category</label>
-                <div class="mt-3 space-y-2 text-slate-200 text-base">
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Regulation" class="catItem"> Regulation</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Dust Control" class="catItem"> Dust Control</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Traffic Mgmt" class="catItem"> Traffic Mgmt</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Technology" class="catItem"> Technology</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Monitoring" class="catItem"> Monitoring</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="Source Control" class="catItem"> Source Control</label>
-                    <label class="flex items-center gap-2"><input type="checkbox" value="EV & Mobility" class="catItem"> EV & Mobility</label>
-                </div>
-            </div>
-
-            <button id="resetBtn" class="mt-6 w-full bg-sky-600 text-white py-2.5 rounded hover:bg-sky-500 text-lg transition duration-200">
-                Reset Filters
-            </button>
-        </aside>
-
-        <section class="col-span-12 md:col-span-6 map-glass p-6 border border-white/10 relative">
-            <h2 class="font-semibold mb-4 text-sky-200 text-xl">Delhi Sub-Division Hex Map</h2>
-            <svg id="hexMap" viewBox="0 0 1200 800" class="w-full max-w-none"></svg>
-            <div id="tooltip" class="tooltip hidden"></div>
-        </section>
-
-        <section class="col-span-12 md:col-span-3 glass p-6 border border-white/10">
-            <h2 class="text-slate-300 text-base">Policy Category Distribution</h2>
-            <h3 class="font-semibold text-sky-300 mt-1 text-xl" id="donutTitle">Policy Type – All Zones</h3>
-            <div class="relative mt-4">
-                <canvas id="donut" height="280"></canvas>
-                <div id="donutCenter" class="donutCenter">0<br>Policies</div>
-            </div>
-            <ul id="legend" class="mt-5 space-y-2 text-base text-slate-200"></ul>
-        </section>
-
-        <section class="col-span-12 glass p-6 border border-white/10">
-            <h3 class="font-semibold text-xl mb-3 text-sky-300">AI Recommendations (Targeted Interventions)</h3>
-            <div id="aiCards" class="grid md:grid-cols-3 gap-4 text-base text-slate-200"></div>
-        </section>
-
-        <section class="col-span-12 glass p-6 border border-white/10 mt-4">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-semibold text-xl text-sky-300">Detailed Policy List</h3>
-                <div class="flex items-center gap-3 text-base text-slate-200">
-                    <label for="itemsPerPage">Items per page:</label>
-                    <select id="itemsPerPage" class="border border-white/30 bg-white/10 text-white rounded px-3 py-1.5">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100" selected>100</option>
-                    </select>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-white/20 text-base text-slate-100">
-                    <thead class="bg-white/10 text-slate-200">
-                        <tr>
-                            <th class="px-4 py-3 text-left border border-white/20">Zone</th>
-                            <th class="px-4 py-3 text-left border border-white/20">Title of Policy</th>
-                            <th class="px-4 py-3 text-left border border-white/20">Year</th>
-                            <th class="px-4 py-3 text-left border border-white/20">Category</th>
-                            <th class="px-4 py-3 text-left border border-white/20">Description</th>
-                            <th class="px-4 py-3 text-center border border-white/20">Link</th>
-                        </tr>
-                    </thead>
-                    <tbody id="policyTable" class="divide-y divide-white/10"></tbody>
-                </table>
-            </div>
-            <div class="flex justify-between items-center mt-4 text-base text-slate-300">
-                <p id="pageInfo"></p>
-                <div class="space-x-3">
-                    <button id="prevPage" class="px-4 py-2 bg-white/10 border border-white/20 rounded hover:bg-white/20">Prev</button>
-                    <button id="nextPage" class="px-4 py-2 bg-white/10 border border-white/20 rounded hover:bg-white/20">Next</button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-
-    <script>
-    // --- Configuration and Data ---
-    const HEX_SIZE = 100, SQRT3 = Math.sqrt(3);
-
-    const categories = ["Regulation","Dust Control","Traffic Mgmt","Technology","Monitoring","Source Control","EV & Mobility"];
-    const chartColors = {
-        "Regulation": "#fca5a5",
-        "Dust Control": "#fcd34d",
-        "Traffic Mgmt": "#93c5fd",
-        "Technology": "#a5b4fc",
-        "Monitoring": "#d1d5db",
-        "Source Control": "#6ee7b7",
-        "EV & Mobility": "#c4b5fd"
-    };
-
-    const subdivisions = [
-        { id: "civil-lines", name: "Civil Lines", q: 0, r: 0 },
-        { id: "narela", name: "Narela", q: 2, r: -2 },
-        { id: "sadar-bazar", name: "Sadar Bazar", q: 1, r: 0 },
-        { id: "kotwali", name: "Kotwali", q: 0, r: -1 },
-        { id: "model-town", name: "Model Town", q: 1, r: -1 },
-        { id: "karol-bagh", name: "Karol Bagh", q: -1, r: 0 },
-        { id: "chanakyapuri", name: "Chanakyapuri", q: -2, r: 0 },
-        { id: "parliament-street", name: "Parliament Street", q: -1, r: -1 },
-        { id: "saraswati-vihar", name: "Saraswati Vihar", q: 1, r: 1 },
-        { id: "vivek-vihar", name: "Vivek Vihar", q: 2, r: 0 },
-        { id: "preet-vihar", name: "Preet Vihar", q: 2, r: 1 },
-        { id: "shahdara", name: "Shahdara", q: 3, r: 0 },
-        { id: "seemapuri", name: "Seemapuri", q: 3, r: 1 },
-        { id: "seelampur", name: "Seelampur", q: 2, r: -1 },
-        { id: "kalkaji", name: "Kalkaji", q: -1, r: 2 },
-        { id: "defence-colony", name: "Defence Colony", q: -1, r: 1 },
-        { id: "hauz-khas", name: "Hauz Khas", q: -2, r: 2 },
-        { id: "saket", name: "Saket", q: -1, r: 3 },
-        { id: "mehrauli", name: "Mehrauli", q: -2, r: 3 },
-        { id: "vasant-vihar", name: "Vasant Vihar", q: -3, r: 2 },
-        { id: "sarita-vihar", name: "Sarita Vihar", q: 0, r: 3 },
-        { id: "dwarka", name: "Dwarka", q: -3, r: 1 },
-        { id: "najafgarh", name: "Najafgarh", q: -3, r: 0 },
-        { id: "patel-nagar", name: "Patel Nagar", q: 0, r: 1 },
-        { id: "rajouri-garden", name: "Rajouri Garden", q: -1, r: 1 },
-        { id: "punjabi-bagh", name: "Punjabi Bagh", q: -2, r: 1 },
-        { id: "janakpuri", name: "Janakpuri", q: -2, r: 2 },
-        { id: "tilak-nagar", name: "Tilak Nagar", q: -1, r: 2 },
-        { id: "r-k-puram", name: "R.K. Puram", q: -2, r: -1 },
-        { id: "jamia-nagar", name: "Jamia Nagar", q: 1, r: 2 },
-        { id: "sarojini-nagar", name: "Sarojini Nagar", q: -1, r: -2 },
-        { id: "delhi-cantt", name: "Delhi Cantt", q: -2, r: -2 },
-        { id: "daryaganj", name: "Daryaganj", q: 1, r: -2 },
-    ];
-
-    // Generate sample policies (Dummy Data)
-    const policies = {};
-    subdivisions.forEach(d => {
-        const count = Math.floor(Math.random() * 3) + 1;
-        policies[d.id] = Array.from({ length: count }).map((_, j) => ({
-            title: `${d.name} Policy ${j + 1}`,
-            category: categories[Math.floor(Math.random() * categories.length)],
-            year: 2023 + Math.floor(Math.random() * 3),
-            description: "Policy to improve air quality and reduce emissions.",
-            link: "https://example.com/policy"
-        }));
-    });
-
-    const svg = document.getElementById("hexMap");
-    const tooltip = document.getElementById("tooltip");
-
-    // --- Hex Map Utilities ---
-    function axialToPixel(q, r) {
-        // Centering the map in the 1200x800 viewBox
-        return { 
-            x: HEX_SIZE * SQRT3 * (q + r / 2) + 600,
-            y: HEX_SIZE * 1.5 * r + 400
-        };
-    }
-
-    function hexPoints(cx, cy) {
-        const pts = [];
-        for (let i = 0; i < 6; i++) {
-            const a = (60 * i - 30) * Math.PI / 180;
-            pts.push(`${cx + HEX_SIZE * Math.cos(a)},${cy + HEX_SIZE * Math.sin(a)}`);
-        }
-        return pts.join(" ");
-    }
-
-    // --- Draw Hex Map ---
-    subdivisions.forEach(d => {
-        const { x, y } = axialToPixel(d.q, d.r);
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-        // Polygon
-        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        poly.setAttribute("points", hexPoints(x, y));
-        poly.setAttribute("fill", "rgba(255,255,255,0.1)");
-        poly.setAttribute("stroke", "#0ea5e9"); /* Toned down stroke */
-        poly.setAttribute("stroke-width", "1.5");
-        poly.classList.add("hex");
-        poly.style.transition = "fill 0.3s, transform 0.3s";
-        poly.dataset.zoneId = d.id; /* Store ID on element */
-        poly.addEventListener("click", e => selectZone(d.id, e));
-        poly.addEventListener("mousemove", e => showTooltip(e, d.name));
-        poly.addEventListener("mouseleave", hideTooltip);
-
-        // Label
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", x);
-        text.setAttribute("y", y + 5);
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-size", "22"); /* Slightly smaller font */
-        text.setAttribute("fill", "#e0f2fe");
-        text.setAttribute("font-weight", "600");
-        text.setAttribute("paint-order", "stroke");
-        text.setAttribute("stroke", "#0d111c");
-        text.setAttribute("stroke-width", "2.0"); /* Thicker stroke for readability */
-        text.textContent = d.name.replace(" ", "\n"); /* Use <text> for single-line names */
-
-        g.appendChild(poly);
-        g.appendChild(text);
-        svg.appendChild(g);
-    });
-
-    // --- Tooltip Logic ---
-    function showTooltip(e, name) {
-        tooltip.textContent = name;
-        // Position tooltip relative to the map container, not the viewport
-        const mapRect = svg.getBoundingClientRect();
-        tooltip.style.left = (e.clientX - mapRect.left) + "px";
-        tooltip.style.top = (e.clientY - mapRect.top - 35) + "px";
-        tooltip.classList.remove("hidden");
-    }
-    function hideTooltip() { tooltip.classList.add("hidden"); }
-
-    // --- State Management ---
-    let state = { search: "", categories: new Set(), selectedZone: null };
-
-    // --- Event Handlers ---
-    document.getElementById("search").addEventListener("input", e => {
-        state.search = e.target.value.toLowerCase(); refresh();
-    });
-
-    document.querySelectorAll(".catItem").forEach(c =>
-        c.addEventListener("change", () => {
-            c.checked ? state.categories.add(c.value) : state.categories.delete(c.value);
-            refresh();
-        })
-    );
-
-    document.getElementById("resetBtn").addEventListener("click", () => {
-        state = { search: "", categories: new Set(), selectedZone: null };
-        document.getElementById("search").value = "";
-        document.querySelectorAll(".catItem").forEach(c => c.checked = false);
-        document.querySelectorAll(".hex").forEach(h => h.classList.remove("active"));
-        document.getElementById("hexMap").querySelectorAll("polygon").forEach(p => p.setAttribute("fill", "rgba(255,255,255,0.1)"));
-        refresh();
-    });
-
-    function selectZone(id, e) {
-        // Toggle Zone selection logic
-        const targetHex = e.target;
-        if (state.selectedZone === id) {
-            // Deselect
-            state.selectedZone = null;
-            targetHex.classList.remove("active");
-            targetHex.setAttribute("fill", "rgba(255,255,255,0.1)");
-        } else {
-            // Select new zone
-            state.selectedZone = id;
-            document.querySelectorAll(".hex").forEach(h => {
-                h.classList.remove("active");
-                h.setAttribute("fill", "rgba(255,255,255,0.1)");
-            });
-            targetHex.classList.add("active");
-            targetHex.setAttribute("fill", "#0ea5e9");
-        }
-        refresh();
-    }
-
-    // --- Table Pagination ---
-    let donut, currentPage = 1, itemsPerPage = 100, currentRows = [];
-    document.getElementById("itemsPerPage").addEventListener("change", e => {
-        itemsPerPage = parseInt(e.target.value); currentPage = 1; renderTable();
-    });
-    document.getElementById("prevPage").addEventListener("click", () => {
-        if (currentPage > 1) { currentPage--; renderTable(); }
-    });
-    document.getElementById("nextPage").addEventListener("click", () => {
-        const max = Math.ceil(currentRows.length / itemsPerPage);
-        if (currentPage < max) { currentPage++; renderTable(); }
-    });
-
-    function renderTable() {
-        const tbody = document.getElementById("policyTable"), info = document.getElementById("pageInfo");
-        const start = (currentPage - 1) * itemsPerPage, end = start + itemsPerPage;
-        const slice = currentRows.slice(start, end);
-        tbody.innerHTML = slice.length ? slice.join("") : `<tr><td colspan="6" class="px-3 py-2 text-center text-slate-400">No policies match the current filters.</td></tr>`;
-        
-        const totalRows = currentRows.length;
-        const shownEnd = Math.min(end, totalRows);
-        info.textContent = totalRows > 0 ? `Showing ${start + 1}–${shownEnd} of ${totalRows}` : "No data";
-
-        // Disable/Enable buttons
-        document.getElementById("prevPage").disabled = currentPage === 1;
-        document.getElementById("nextPage").disabled = currentPage === Math.ceil(totalRows / itemsPerPage) || totalRows === 0;
-    }
-
-    // --- Core Refresh Function ---
-    function getFilteredPolicies() {
-        const filtered = {};
-        const zones = state.selectedZone ? [state.selectedZone] : Object.keys(policies);
-        zones.forEach(id => {
-            filtered[id] = policies[id].filter(p => {
-                const matchCat = state.categories.size === 0 || state.categories.has(p.category);
-                const matchSearch = !state.search || p.title.toLowerCase().includes(state.search) || p.description.toLowerCase().includes(state.search);
-                return matchCat && matchSearch;
-            });
-        });
-        return filtered;
-    }
-
-    function refresh() {
-        const filtered = getFilteredPolicies();
-        const catCount = {};
-        Object.values(filtered).flat().forEach(p => catCount[p.category] = (catCount[p.category] || 0) + 1);
-        const labels = Object.keys(catCount), values = Object.values(catCount);
-        
-        // --- 1. Update Donut Chart ---
-        if (donut) donut.destroy();
-        donut = new Chart(document.getElementById("donut"), {
-            type: "doughnut",
-            data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => chartColors[l] || "#e5e7eb") }] },
-            options: { cutout: "65%", plugins: { legend: { display: false } } }
-        });
-
-        const zoneName = state.selectedZone ? subdivisions.find(s => s.id === state.selectedZone)?.name : "All Zones";
-        document.getElementById("donutTitle").textContent = `Policy Type – ${zoneName}`;
-        document.getElementById("donutCenter").innerHTML = values.reduce((a, b) => a + b, 0) + "<br>Policies";
-        document.getElementById("legend").innerHTML = labels.map((l, i) => 
-            `<li class='flex justify-between'>
-                <span class='flex items-center gap-2'>
-                    <span style='background-color: ${chartColors[l]}; width: 10px; height: 10px; border-radius: 50%; display: inline-block;'></span>
-                    ${l}
-                </span>
-                <span>${values[i]}</span>
-            </li>`
-        ).join("");
-
-        // --- 2. Generate AI Recommendations ---
-        const rec = [];
-        Object.entries(filtered).forEach(([id, arr]) => {
-            const zone = subdivisions.find(z => z.id === id)?.name || id;
-            arr.forEach(p => {
-                if (p.category === "Dust Control") rec.push(`💧 Enhance road sprinkling in ${zone}`);
-                if (p.category === "Traffic Mgmt") rec.push(`🚗 Expand $\text{PUC}$ checks & signal timing in ${zone}`);
-                if (p.category === "EV & Mobility") rec.push(`⚡ Promote $\text{EV}$ charging stations in ${zone}`);
-                if (p.category === "Regulation") rec.push(`📜 Enforce strict vehicle norms in ${zone}`);
-                if (p.category === "Monitoring") rec.push(`📈 Add real-time $\text{AQI}$ sensors in ${zone}`);
-                if (p.category === "Source Control") rec.push(`🏭 Focus industrial emission audits in ${zone}`);
-                if (p.category === "Technology") rec.push(`🛰️ Deploy satellite-linked pollution tracking in ${zone}`);
-            });
-        });
-        
-        const uniqueRec = [...new Set(rec)].slice(0, 9); // Limit to 9 unique recommendations
-        document.getElementById("aiCards").innerHTML = uniqueRec.length ? uniqueRec.map(r => 
-            `<div class='border border-white/20 bg-white/10 p-3 rounded hover:bg-sky-500/20 transition text-sm'>${r}</div>`
-        ).join("") : `<p class='text-slate-400 p-3'>AI suggestions appear based on current policy data and active filters.</p>`;
-
-        // --- 3. Render Policy Table ---
-        // --- 3. Render Policy Table (with Grouping) ---
+    <header
+class="max-w-7xl mx-auto px-4 pt-6 pb-4 text-center">
+        <h1
+class="text-sky-800">Vaayu – Delhi Air Policy Dashboard</h1>
+        <p
+class="text-slate-800 mt-2 text-base">Explore 33 sub-divisions’
+air quality interventions</p>
+        <h2
+class="mt-4 text-sky-800">Selected Zone: <%= zoneName
+%></h2>
+    </header>
+ 
+    <main
+class="max-w-7xl mx-auto grid grid-cols-12 gap-6 px-4 pb-16">
+ 
+        <aside
+class="col-span-12 md:col-span-3 glass p-6 border
+border-white/10">
+            <label
+class="text-sm font-semibold text-sky-800">Search Policy
+Database</label>
+            <input
+id="search" type="text" placeholder="Search
+policies..." 
+                   class="w-full mt-2 border border-white/30 bg-white/10 text-slate-800
+placeholder-slate-500 rounded px-4 py-2 focus:outline-none focus:ring-2
+focus:ring-sky-400">
+ 
+            <div
+class="mt-6">
+               <label class="font-semibold text-sky-800">Filter by
+Policy Category</label>
+               <div class="mt-3 space-y-2 text-slate-700 text-base">
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Regulation"
+class="catItem"> Regulation</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Dust Control"
+class="catItem"> Dust Control</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Traffic Mgmt"
+class="catItem"> Traffic Mgmt</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Technology"
+class="catItem"> Technology</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Monitoring"
+class="catItem"> Monitoring</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="Source Control"
+class="catItem"> Source Control</label>
+                   <label class="flex items-center gap-2"><input
+type="checkbox" value="EV & Mobility"
+class="catItem"> EV & Mobility</label>
+               </div>
+           </div>
+ 
+            <button
+id="resetBtn" class="mt-6 w-full bg-sky-600 text-slate-800
+py-2.5 rounded hover:bg-sky-500 text-lg transition duration-200">
+                Reset
+Filters
+           </button>
+        </aside>
+ 
+        <section
+class="col-span-12 md:col-span-6 map-glass p-6 border border-white/10
+relative">
+            <h2
+class="font-semibold mb-4 text-sky-800 text-xl">Delhi Sub-Division
+Hex Map</h2>
+            <svg
+id="hexMap" viewBox="0 0 1200 800" class="w-full
+max-w-none"></svg>
+            <div
+id="tooltip" class="tooltip hidden"></div>
+       </section>
+ 
+        <section
+class="col-span-12 md:col-span-3 glass p-6 border
+border-white/10">
+            <h2
+class="text-slate-700 text-base">Policy Category
+Distribution</h2>
+            <h3
+class="font-semibold text-sky-800 mt-1 text-xl"
+id="donutTitle">Policy Type – All Zones</h3>
+            <div
+class="relative mt-4">
+               <canvas id="donut"
+height="280"></canvas>
+               <div id="donutCenter"
+class="donutCenter">0<br>Policies</div>
+           </div>
+            <ul
+id="legend" class="mt-5 space-y-2 text-base text-slate-700"></ul>
+       </section>
+ 
+        <section
+class="col-span-12 glass p-6 border border-white/10">
+            <h3
+class="font-semibold text-xl mb-3 text-sky-800">AI Recommendations
+(Targeted Interventions)</h3>
+            <div
+id="aiCards" class="grid md:grid-cols-3 gap-4 text-base text-slate-700"></div>
+       </section>
+ 
+        <section
+class="col-span-12 glass p-6 border border-white/10 mt-4">
+            <div
+class="flex justify-between items-center mb-5">
+                <h3
+class="font-semibold text-xl text-sky-800">Detailed Policy
+List</h3>
+               <div class="flex items-center gap-3 text-base text-slate-700">
+                   <label for="itemsPerPage">Items per page:</label>
+                   <select id="itemsPerPage" class="border
+border-white/30 bg-white/10 text-slate-800 rounded px-3 py-1.5">
+                       <option value="10">10</option>
+                       <option value="25">25</option>
+                       <option value="50">50</option>
+                       <option value="100" selected>100</option>
+                   </select>
+               </div>
+           </div>
+            <div
+class="overflow-x-auto">
+               <table class="min-w-full border border-white/20 text-base
+text-slate-100">
+                   <thead class="bg-white/10 text-slate-700">
+                       <tr>
+                           <th class="px-4 py-3 text-left border
+border-white/20">Zone</th>
+                           <th class="px-4 py-3 text-left border
+border-white/20">Title of Policy</th>
+                           <th class="px-4 py-3 text-left border
+border-white/20">Year</th>
+                           <th class="px-4 py-3 text-left border
+border-white/20">Category</th>
+                           <th class="px-4 py-3 text-left border
+border-white/20">Description</th>
+                           <th class="px-4 py-3 text-center border
+border-white/20">Link</th>
+                       </tr>
+                   </thead>
+                   <tbody id="policyTable" class="divide-y
+divide-white/10"></tbody>
+               </table>
+           </div>
+            <div
+class="flex justify-between items-center mt-4 text-base text-slate-700">
+                <p
+id="pageInfo"></p>
+               <div class="space-x-3">
+                   <button id="prevPage" class="px-4 py-2 bg-white/10
+border border-white/20 rounded hover:bg-white/20">Prev</button>
+                   <button id="nextPage" class="px-4 py-2 bg-white/10
+border border-white/20 rounded hover:bg-white/20">Next</button>
+               </div>
+           </div>
+       </section>
+    </main>
+ 
+ 
+    <script>
+    // ---
+Configuration and Data ---
+    const HEX_SIZE =
+100, SQRT3 = Math.sqrt(3);
+ 
+    const categories =
+["Regulation","Dust Control","Traffic
+Mgmt","Technology","Monitoring","Source
+Control","EV & Mobility"];
+    const chartColors
+= {
+       "Regulation": "#fca5a5",
+        "Dust
+Control": "#fcd34d",
+        "Traffic
+Mgmt": "#93c5fd",
+       "Technology": "#a5b4fc",
+       "Monitoring": "#d1d5db",
+        "Source
+Control": "#6ee7b7",
+        "EV &
+Mobility": "#c4b5fd"
+    };
+ 
+    const subdivisions
+= [
+        { id:
+"civil-lines", name: "Civil Lines", q: 0, r: 0 },
+        { id:
+"narela", name: "Narela", q: 2, r: -2 },
+        { id:
+"sadar-bazar", name: "Sadar Bazar", q: 1, r: 0 },
+        { id:
+"kotwali", name: "Kotwali", q: 0, r: -1 },
+        { id:
+"model-town", name: "Model Town", q: 1, r: -1 },
+        { id:
+"karol-bagh", name: "Karol Bagh", q: -1, r: 0 },
+        { id:
+"chanakyapuri", name: "Chanakyapuri", q: -2, r: 0 },
+        { id:
+"parliament-street", name: "Parliament Street", q: -1, r:
+-1 },
+        { id:
+"saraswati-vihar", name: "Saraswati Vihar", q: 1, r: 1 },
+        { id:
+"vivek-vihar", name: "Vivek Vihar", q: 2, r: 0 },
+        { id:
+"preet-vihar", name: "Preet Vihar", q: 2, r: 1 },
+        { id:
+"shahdara", name: "Shahdara", q: 3, r: 0 },
+        { id:
+"seemapuri", name: "Seemapuri", q: 3, r: 1 },
+        { id:
+"seelampur", name: "Seelampur", q: 2, r: -1 },
+        { id:
+"kalkaji", name: "Kalkaji", q: -1, r: 2 },
+        { id:
+"defence-colony", name: "Defence Colony", q: -1, r: 1 },
+        { id:
+"hauz-khas", name: "Hauz Khas", q: -2, r: 2 },
+        { id:
+"saket", name: "Saket", q: -1, r: 3 },
+        { id:
+"mehrauli", name: "Mehrauli", q: -2, r: 3 },
+        { id:
+"vasant-vihar", name: "Vasant Vihar", q: -3, r: 2 },
+        { id:
+"sarita-vihar", name: "Sarita Vihar", q: 0, r: 3 },
+        { id:
+"dwarka", name: "Dwarka", q: -3, r: 1 },
+        { id:
+"najafgarh", name: "Najafgarh", q: -3, r: 0 },
+        { id:
+"patel-nagar", name: "Patel Nagar", q: 0, r: 1 },
+        { id:
+"rajouri-garden", name: "Rajouri Garden", q: -1, r: 1 },
+        { id:
+"punjabi-bagh", name: "Punjabi Bagh", q: -2, r: 1 },
+        { id:
+"janakpuri", name: "Janakpuri", q: -2, r: 2 },
+        { id:
+"tilak-nagar", name: "Tilak Nagar", q: -1, r: 2 },
+        { id:
+"r-k-puram", name: "R.K. Puram", q: -2, r: -1 },
+        { id:
+"jamia-nagar", name: "Jamia Nagar", q: 1, r: 2 },
+        { id:
+"sarojini-nagar", name: "Sarojini Nagar", q: -1, r: -2 },
+        { id:
+"delhi-cantt", name: "Delhi Cantt", q: -2, r: -2 },
+        { id:
+"daryaganj", name: "Daryaganj", q: 1, r: -2 },
+    ];
+ 
+    // Generate sample
+policies (Dummy Data)
+    const policies =
+{};
+   subdivisions.forEach(d => {
+        const count =
+Math.floor(Math.random() * 3) + 1;
+        policies[d.id]
+= Array.from({ length: count }).map((_, j) => ({
+            title:
+`${d.name} Policy ${j + 1}`,
+            category:
+categories[Math.floor(Math.random() * categories.length)],
+            year: 2023
++ Math.floor(Math.random() * 3),
+           description: "Policy to improve air quality and reduce
+emissions.",
+            link:
+"https://example.com/policy"
+        }));
+    });
+ 
+    const svg =
+document.getElementById("hexMap");
+    const tooltip =
+document.getElementById("tooltip");
+ 
+    // --- Hex Map
+Utilities ---
+    function
+axialToPixel(q, r) {
+        // Centering
+the map in the 1200x800 viewBox
+        return { 
+            x:
+HEX_SIZE * SQRT3 * (q + r / 2) + 600,
+            y:
+HEX_SIZE * 1.5 * r + 400
+        };
+    }
+ 
+    function
+hexPoints(cx, cy) {
+        const pts =
+[];
+        for (let i =
+0; i < 6; i++) {
+            const a =
+(60 * i - 30) * Math.PI / 180;
+           pts.push(`${cx + HEX_SIZE * Math.cos(a)},${cy + HEX_SIZE *
+Math.sin(a)}`);
+        }
+        return
+pts.join(" ");
+    }
+ 
+    // --- Draw Hex
+Map ---
+   subdivisions.forEach(d => {
+        const { x, y }
+= axialToPixel(d.q, d.r);
+        const g =
+document.createElementNS("http://www.w3.org/2000/svg",
+"g");
+ 
+        // Polygon
+        const poly =
+document.createElementNS("http://www.w3.org/2000/svg",
+"polygon");
+       poly.setAttribute("points", hexPoints(x, y));
+       poly.setAttribute("fill", "rgba(255,255,255,0.1)");
+       poly.setAttribute("stroke", "#0ea5e9"); /* Toned
+down stroke */
+       poly.setAttribute("stroke-width", "1.5");
+       poly.classList.add("hex");
+       poly.style.transition = "fill 0.3s, transform 0.3s";
+       poly.dataset.zoneId = d.id; /* Store ID on element */
+       poly.addEventListener("click", e => selectZone(d.id, e));
+       poly.addEventListener("mousemove", e => showTooltip(e,
+d.name));
+       poly.addEventListener("mouseleave", hideTooltip);
+ 
+        // Label
+        const text =
+document.createElementNS("http://www.w3.org/2000/svg",
+"text");
+       text.setAttribute("x", x);
+       text.setAttribute("y", y + 5);
+       text.setAttribute("text-anchor", "middle");
+       text.setAttribute("font-size", "22"); /* Slightly
+smaller font */
+       text.setAttribute("fill", "#e0f2fe");
+       text.setAttribute("font-weight", "600");
+       text.setAttribute("paint-order", "stroke");
+       text.setAttribute("stroke", "#0d111c");
+       text.setAttribute("stroke-width", "2.0"); /* Thicker
+stroke for readability */
+       text.textContent = d.name.replace(" ", "\n"); /* Use
+<text> for single-line names */
+ 
+       g.appendChild(poly);
+       g.appendChild(text);
+       svg.appendChild(g);
+    });
+ 
+    // --- Tooltip
+Logic ---
+    function
+showTooltip(e, name) {
+       tooltip.textContent = name;
+        // Position
+tooltip relative to the map container, not the viewport
+        const mapRect
+= svg.getBoundingClientRect();
+       tooltip.style.left = (e.clientX - mapRect.left) + "px";
+       tooltip.style.top = (e.clientY - mapRect.top - 35) + "px";
+       tooltip.classList.remove("hidden");
+    }
+    function
+hideTooltip() { tooltip.classList.add("hidden"); }
+ 
+    // --- State
+Management ---
+    let state = {
+search: "", categories: new Set(), selectedZone: null };
+ 
+    // --- Event
+Handlers ---
+   document.getElementById("search").addEventListener("input",
+e => {
+        state.search =
+e.target.value.toLowerCase(); refresh();
+    });
+ 
+   document.querySelectorAll(".catItem").forEach(c =>
+       c.addEventListener("change", () => {
+            c.checked
+? state.categories.add(c.value) : state.categories.delete(c.value);
+            refresh();
+        })
+    );
+ 
+   document.getElementById("resetBtn").addEventListener("click",
+() => {
+        state = {
+search: "", categories: new Set(), selectedZone: null };
+       document.getElementById("search").value = "";
+       document.querySelectorAll(".catItem").forEach(c =>
+c.checked = false);
+       document.querySelectorAll(".hex").forEach(h =>
+h.classList.remove("active"));
+       document.getElementById("hexMap").querySelectorAll("polygon").forEach(p
+=> p.setAttribute("fill", "rgba(255,255,255,0.1)"));
+        refresh();
+    });
+ 
+    function
+selectZone(id, e) {
+        // Toggle Zone
+selection logic
+        const
+targetHex = e.target;
+        if
+(state.selectedZone === id) {
+            //
+Deselect
+           state.selectedZone = null;
+           targetHex.classList.remove("active");
+           targetHex.setAttribute("fill",
+"rgba(255,255,255,0.1)");
+        } else {
+            // Select
+new zone
+           state.selectedZone = id;
+           document.querySelectorAll(".hex").forEach(h => {
+               h.classList.remove("active");
+               h.setAttribute("fill", "rgba(255,255,255,0.1)");
+            });
+           targetHex.classList.add("active");
+           targetHex.setAttribute("fill", "#0ea5e9");
+        }
+        refresh();
+    }
+ 
+    // --- Table
+Pagination ---
+    let donut,
+currentPage = 1, itemsPerPage = 100, currentRows = [];
+   document.getElementById("itemsPerPage").addEventListener("change",
+e => {
+        itemsPerPage =
+parseInt(e.target.value); currentPage = 1; renderTable();
+    });
+   document.getElementById("prevPage").addEventListener("click",
+() => {
+        if
+(currentPage > 1) { currentPage--; renderTable(); }
+    });
+   document.getElementById("nextPage").addEventListener("click",
+() => {
+        const max =
+Math.ceil(currentRows.length / itemsPerPage);
+        if
+(currentPage < max) { currentPage++; renderTable(); }
+    });
+ 
+    function
+renderTable() {
+        const tbody =
+document.getElementById("policyTable"), info =
+document.getElementById("pageInfo");
+        const start =
+(currentPage - 1) * itemsPerPage, end = start + itemsPerPage;
+        const slice =
+currentRows.slice(start, end);
+       tbody.innerHTML = slice.length ? slice.join("") :
+`<tr><td colspan="6" class="px-3 py-2 text-center text-slate-800">No
+policies match the current filters.</td></tr>`;
+        
+        const
+totalRows = currentRows.length;
+        const shownEnd
+= Math.min(end, totalRows);
+       info.textContent = totalRows > 0 ? `Showing ${start + 1}–${shownEnd}
+of ${totalRows}` : "No data";
+ 
+        //
+Disable/Enable buttons
+       document.getElementById("prevPage").disabled = currentPage ===
+1;
+       document.getElementById("nextPage").disabled = currentPage ===
+Math.ceil(totalRows / itemsPerPage) || totalRows === 0;
+    }
+ 
+    // --- Core
+Refresh Function ---
+    function
+getFilteredPolicies() {
+        const filtered
+= {};
+        const zones =
+state.selectedZone ? [state.selectedZone] : Object.keys(policies);
+       zones.forEach(id => {
+           filtered[id] = policies[id].filter(p => {
+                const
+matchCat = state.categories.size === 0 || state.categories.has(p.category);
+                const
+matchSearch = !state.search || p.title.toLowerCase().includes(state.search) ||
+p.description.toLowerCase().includes(state.search);
+                return
+matchCat && matchSearch;
+            });
+        });
+        return
+filtered;
+    }
+ 
+    function refresh()
+{
+        const filtered
+= getFilteredPolicies();
+        const catCount
+= {};
+       Object.values(filtered).flat().forEach(p => catCount[p.category] =
+(catCount[p.category] || 0) + 1);
+        const labels =
+Object.keys(catCount), values = Object.values(catCount);
+        
+        // --- 1.
+Update Donut Chart ---
+        if (donut)
+donut.destroy();
+        donut = new
+Chart(document.getElementById("donut"), {
+            type:
+"doughnut",
+            data: {
+labels, datasets: [{ data: values, backgroundColor: labels.map(l =>
+chartColors[l] || "#e5e7eb") }] },
+            options: {
+cutout: "65%", plugins: { legend: { display: false } } }
+        });
+ 
+        const zoneName
+= state.selectedZone ? subdivisions.find(s => s.id ===
+state.selectedZone)?.name : "All Zones";
+       document.getElementById("donutTitle").textContent = `Policy
+Type – ${zoneName}`;
+       document.getElementById("donutCenter").innerHTML =
+values.reduce((a, b) => a + b, 0) + "<br>Policies";
+       document.getElementById("legend").innerHTML = labels.map((l,
+i) => 
+            `<li
+class='flex justify-between'>
+               <span class='flex items-center gap-2'>
+                   <span style='background-color: ${chartColors[l]}; width: 10px;
+height: 10px; border-radius: 50%; display: inline-block;'></span>
+                   ${l}
+               </span>
+               <span>${values[i]}</span>
+           </li>`
+       ).join("");
+ 
+        // --- 2.
+Generate AI Recommendations ---
+        const rec =
+[];
+       Object.entries(filtered).forEach(([id, arr]) => {
+            const zone
+= subdivisions.find(z => z.id === id)?.name || id;
+           arr.forEach(p => {
+                if
+(p.category === "Dust Control") rec.push(`💧
+Enhance road sprinkling in ${zone}`);
+                if
+(p.category === "Traffic Mgmt") rec.push(`🚗
+Expand $\text{PUC}$ checks & signal timing in ${zone}`);
+                if
+(p.category === "EV & Mobility") rec.push(`⚡
+Promote $\text{EV}$ charging stations in ${zone}`);
+                if
+(p.category === "Regulation") rec.push(`📜
+Enforce strict vehicle norms in ${zone}`);
+                if
+(p.category === "Monitoring") rec.push(`📈
+Add real-time $\text{AQI}$ sensors in ${zone}`);
+                if
+(p.category === "Source Control") rec.push(`🏭
+Focus industrial emission audits in ${zone}`);
+                if
+(p.category === "Technology") rec.push(`🛰️
+Deploy satellite-linked pollution tracking in ${zone}`);
+            });
+        });
+        
+        const
+uniqueRec = [...new Set(rec)].slice(0, 9); // Limit to 9 unique recommendations
+       document.getElementById("aiCards").innerHTML =
+uniqueRec.length ? uniqueRec.map(r => 
+            `<div
+class='border border-white/20 bg-white/10 p-3 rounded hover:bg-sky-500/20
+transition text-sm'>${r}</div>`
+       ).join("") : `<p class='text-slate-800 p-3'>AI
+suggestions appear based on current policy data and active filters.</p>`;
+ 
+        // --- 3.
+Render Policy Table ---
+        // --- 3.
+Render Policy Table (with Grouping) ---
 const groupedByZone = {};
 Object.entries(filtered).forEach(([id, arr]) => {
-    if (arr.length > 0) { // Only process zones that have policies
-        const zoneName = subdivisions.find(s => s.id === id)?.name || id;
-        if (!groupedByZone[zoneName]) {
-            groupedByZone[zoneName] = [];
-        }
-        groupedByZone[zoneName].push(...arr);
-    }
+    if (arr.length
+> 0) { // Only process zones that have policies
+        const zoneName
+= subdivisions.find(s => s.id === id)?.name || id;
+        if
+(!groupedByZone[zoneName]) {
+           groupedByZone[zoneName] = [];
+        }
+       groupedByZone[zoneName].push(...arr);
+    }
 });
-
+ 
 const rows = [];
 for (const zoneName in groupedByZone) {
-    // Add a header row for the zone
-    rows.push(`
-        <tr>
-            <td colspan="6" class="px-4 py-2 bg-sky-100 font-bold text-sky-800 border border-white/20">
-                ${zoneName}
-            </td>
-        </tr>
-    `);
-    
-    // Add the policy rows for that zone
-    groupedByZone[zoneName].forEach(p => {
-        rows.push(`
-            <tr class="hover:bg-white/10 transition">
-                <td class="px-4 py-3 border border-white/20 text-slate-500 italic text-sm">${zoneName}</td>
-                <td class="px-4 py-3 border border-white/20">${p.title}</td>
-                <td class="px-4 py-3 border border-white/20">${p.year}</td>
-                <td class="px-4 py-3 border border-white/20">${p.category}</td>
-                <td class="px-4 py-3 border border-white/20">${p.description}</td>
-                <td class="px-4 py-3 border border-white/20 text-center"><a href="${p.link}" target="_blank" class="text-sky-600 hover:underline">Link</a></td>
-            </tr>
-        `);
-    });
+    // Add a header
+row for the zone
+    rows.push(`
+        <tr>
+            <td
+colspan="6" class="px-4 py-2 bg-sky-100 font-bold text-sky-800
+border border-white/20">
+               ${zoneName}
+           </td>
+        </tr>
+    `);
+    
+    // Add the policy
+rows for that zone
+   groupedByZone[zoneName].forEach(p => {
+        rows.push(`
+            <tr
+class="hover:bg-white/10 transition">
+                <td
+class="px-4 py-3 border border-white/20 text-slate-500 italic
+text-sm">${zoneName}</td>
+                <td
+class="px-4 py-3 border border-white/20">${p.title}</td>
+                <td
+class="px-4 py-3 border border-white/20">${p.year}</td>
+                <td
+class="px-4 py-3 border border-white/20">${p.category}</td>
+                <td
+class="px-4 py-3 border
+border-white/20">${p.description}</td>
+                <td
+class="px-4 py-3 border border-white/20 text-center"><a
+href="${p.link}" target="_blank" class="text-sky-600
+hover:underline">Link</a></td>
+           </tr>
+        `);
+    });
 }
 currentRows = rows; currentPage = 1; renderTable();
-        
-    }
-    
-    // Initial load
-    refresh();
-    </script>
+        
+    }
+    
+    // Initial load
+    refresh();
+    </script>
 </body>
-
+ 
 </html>
+
